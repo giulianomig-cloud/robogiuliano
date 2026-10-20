@@ -1,0 +1,92 @@
+# A ogni aggiornamento: controlli, costruzione del programma per Windows, prova su Windows e,
+# se la versione in package.json è nuova, pubblicazione (da lì si aggiornano i PC dove è installato).
+name: Costruisci e pubblica
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installa
+        run: npm ci
+
+      - name: Controlli automatici
+        run: npm test
+
+      - name: Costruisci AssistenteClaude.exe
+        run: node scripts/costruisci.js
+
+      - name: Prova il programma su Windows
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath uscita\AssistenteClaude.exe -ArgumentList '--servizio' -PassThru
+          $ok = $false
+          for ($i = 0; $i -lt 30; $i++) {
+            Start-Sleep -Seconds 1
+            try { $r = Invoke-RestMethod http://127.0.0.1:7777/ping; $ok = $true; break } catch {}
+          }
+          if (-not $ok) { throw "Il programma non risponde" }
+          Write-Host "Versione: $($r.versione)"
+          $v = (Get-Content package.json | ConvertFrom-Json).version
+          if ($r.versione -ne $v) { throw "Versione sbagliata: $($r.versione) invece di $v" }
+          $pagina = Invoke-WebRequest http://127.0.0.1:7777/ -UseBasicParsing
+          if ($pagina.Content -notmatch 'Impostazioni') { throw "Manca la pagina delle impostazioni" }
+          foreach ($img in 'robo-riposo','robo-ascolto','robo-pensa','robo-parla','robo-parla-2','robo-parla-3') {
+            $r2 = Invoke-WebRequest "http://127.0.0.1:7777/$img.webp" -UseBasicParsing
+            if ($r2.StatusCode -ne 200 -or $r2.RawContentLength -lt 10000) { throw "Immagine mancante: $img" }
+          }
+          Stop-Process -Id $p.Id -Force
+          Write-Host "Tutto a posto"
+
+      - name: Prepara lo zip
+        shell: pwsh
+        run: Compress-Archive -Path uscita\AssistenteClaude.exe -DestinationPath uscita\AssistenteClaude.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AssistenteClaude
+          path: |
+            uscita/AssistenteClaude.zip
+            uscita/versione.json
+
+      - name: Versione nuova?
+        id: versione
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        run: |
+          $v = (Get-Content package.json | ConvertFrom-Json).version
+          "numero=$v" >> $env:GITHUB_OUTPUT
+          $c = git ls-remote --tags origin "refs/tags/v$v"
+          if ($c) { "nuova=no" >> $env:GITHUB_OUTPUT } else { "nuova=si" >> $env:GITHUB_OUTPUT }
+
+      - name: Pubblica
+        if: steps.versione.outputs.nuova == 'si'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.versione.outputs.numero }}
+          name: Versione ${{ steps.versione.outputs.numero }}
+          make_latest: true
+          body: |
+            Scarica **AssistenteClaude.zip**, estrailo e fai doppio clic su AssistenteClaude.exe.
+            Dove è già installato si aggiorna da solo (entro qualche ora, all'accensione o mentre è acceso).
+          files: |
+            uscita/AssistenteClaude.exe
+            uscita/AssistenteClaude.zip
+            uscita/versione.json

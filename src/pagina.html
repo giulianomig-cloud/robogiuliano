@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="it" translate="no" data-tema="allegra">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ehi Aurora</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: "Segoe UI Variable Display", "Segoe UI", Arial, sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 24px; text-align: center; user-select: none; overflow: hidden; position: relative; }
+  #cerchio { position: relative; width: 260px; height: 260px; border-radius: 50%; border: none; cursor: pointer; padding: 0;
+    display: flex; align-items: center; justify-content: center; transition: background .3s, transform .3s, box-shadow .4s; }
+  #cerchio:active { transform: scale(.96); }
+  .strato { position: absolute; pointer-events: none; display: none; }
+  .icona { position: relative; font-size: 110px; line-height: 1; }
+  #stato { font-size: 44px; font-weight: 700; }
+  #aiuto { font-size: 28px; }
+  #detto { font-size: 26px; font-style: italic; min-height: 1.4em; max-width: 900px; }
+  #risposta { font-size: 32px; line-height: 1.45; max-width: 1000px; min-height: 1.4em; }
+  #avvia { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 24px; font-size: 40px; font-weight: 700; cursor: pointer; z-index: 5; }
+  #avvia span { font-size: 120px; }
+  #impostazioni { position: fixed; bottom: 12px; right: 16px; font-size: 15px; opacity: .5; color: inherit; }
+  body > * { position: relative; z-index: 1; }
+  @keyframes ruota { to { transform: rotate(360deg); } }
+  @keyframes respira { 50% { transform: scale(1.07); } }
+  @keyframes gira { 50% { transform: scale(.94); } }
+
+  @keyframes deriva { to { transform: translate(18vmax, 10vmax) scale(1.15); } }
+  @keyframes forma { 0%,100% { border-radius: 42% 58% 60% 40% / 45% 45% 55% 55%; } 33% { border-radius: 60% 40% 35% 65% / 55% 60% 40% 45%; } 66% { border-radius: 38% 62% 55% 45% / 60% 35% 65% 40%; } }
+  /* ---------- D · Aurora allegra (con faccina) ---------- */
+  .faccia, #bolle { display: none; }
+  [data-tema="allegra"] body { background: #140b33; color: #fff8fd; }
+  [data-tema="allegra"] body::before, [data-tema="allegra"] body::after { content: ""; position: fixed; width: 65vmax; height: 65vmax; border-radius: 50%; filter: blur(90px); opacity: .6; z-index: 0; animation: deriva 16s ease-in-out infinite alternate; }
+  [data-tema="allegra"] body::before { background: #8b3dff; top: -30vmax; left: -22vmax; }
+  [data-tema="allegra"] body::after { background: #ff5fa2; bottom: -36vmax; right: -22vmax; animation-delay: -8s; }
+  [data-tema="allegra"] #bolle { display: block; position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  [data-tema="allegra"] #bolle span { position: absolute; bottom: -60px; border-radius: 50%; opacity: .7;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.9), var(--c) 45%, transparent 72%); animation: sale var(--t) linear infinite; animation-delay: var(--d); }
+  @keyframes sale { 0% { transform: translate(0, 0) scale(.6); opacity: 0; } 10% { opacity: .75; } 50% { transform: translate(var(--x), -55vh) scale(1); } 100% { transform: translate(0, -115vh) scale(.8); opacity: 0; } }
+  [data-tema="allegra"] .icona { display: none; }
+  [data-tema="allegra"] #cerchio { width: 300px; height: 300px; background: rgba(255,255,255,.08); backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,.25); box-shadow: 0 24px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.3); animation: galleggia 3.4s ease-in-out infinite; }
+  @keyframes galleggia { 50% { transform: translateY(-12px) rotate(-2deg); } }
+  [data-tema="allegra"] #cerchio:active { animation: schiaccia .35s ease-out; }
+  @keyframes schiaccia { 40% { transform: scale(1.12, .86); } 70% { transform: scale(.94, 1.06); } }
+  [data-tema="allegra"] .strato { display: block; }
+  [data-tema="allegra"] .s1 { inset: 16%; background: linear-gradient(135deg, #ffd36e, #ff7eb3 35%, #a78bfa 65%, #7ef0ff); filter: blur(2px);
+    animation: forma 6s ease-in-out infinite, colori 10s linear infinite; }
+  @keyframes colori { 50% { filter: blur(2px) hue-rotate(35deg) saturate(1.2); } }
+  [data-tema="allegra"] .s2 { inset: 16%; background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.7), transparent 40%); border-radius: 50%; }
+  [data-tema="allegra"] .s3 { display: none; }
+  [data-tema="allegra"] .faccia { display: block; position: absolute; inset: 16%; pointer-events: none; animation: guarda 9s ease-in-out infinite; }
+  @keyframes guarda { 0%,35%,100% { transform: translate(0,0); } 45%,60% { transform: translate(-10px,2px); } 70%,88% { transform: translate(10px,-2px); } }
+  [data-tema="allegra"] .occhio { position: absolute; top: 36%; width: 24px; height: 34px; border-radius: 50%; background: #241446; animation: batti 4.6s infinite; transition: transform .3s; }
+  [data-tema="allegra"] .occhio::after { content: ""; position: absolute; top: 6px; left: 5px; width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+  [data-tema="allegra"] .occhio.sx { left: 31%; }
+  [data-tema="allegra"] .occhio.dx { right: 31%; animation-delay: .04s; }
+  @keyframes batti { 0%,93%,100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+  [data-tema="allegra"] .bocca { position: absolute; top: 62%; left: 50%; width: 40px; height: 16px; margin-left: -20px; border: 5px solid #241446; border-top: 0; border-radius: 0 0 40px 40px; transition: all .3s; }
+  /* Ascolta: occhi grandi, bocca a "o", onde che escono dal cerchio */
+  [data-tema="allegra"] body.ascolto #cerchio { animation: saltello .9s ease-in-out infinite; box-shadow: 0 0 90px rgba(126,240,255,.5), inset 0 1px 0 rgba(255,255,255,.3); }
+  @keyframes saltello { 50% { transform: translateY(-14px) scale(1.04); } }
+  [data-tema="allegra"] body.ascolto .occhio { transform: scale(1.25); animation: none; }
+  [data-tema="allegra"] body.ascolto .bocca { width: 22px; height: 22px; margin-left: -11px; border: 5px solid #241446; border-radius: 50%; }
+  [data-tema="allegra"] body.ascolto .faccia { animation: none; }
+  [data-tema="allegra"] #cerchio::before, [data-tema="allegra"] #cerchio::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 3px solid rgba(126,240,255,.7); opacity: 0; pointer-events: none; }
+  [data-tema="allegra"] body.ascolto #cerchio::before { animation: onda 1.6s ease-out infinite; }
+  [data-tema="allegra"] body.ascolto #cerchio::after { animation: onda 1.6s ease-out .8s infinite; }
+  @keyframes onda { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(1.5); opacity: 0; } }
+  /* Pensa: guarda in alto e dondola */
+  [data-tema="allegra"] body.pensa .faccia { animation: dondola 1.2s ease-in-out infinite; }
+  @keyframes dondola { 0%,100% { transform: translate(-6px,-10px) rotate(-6deg); } 50% { transform: translate(6px,-10px) rotate(6deg); } }
+  [data-tema="allegra"] body.pensa .bocca { width: 18px; height: 0; margin-left: -9px; border-bottom-width: 5px; border-radius: 4px; }
+  [data-tema="allegra"] body.pensa .s1 { animation-duration: 1.6s, 2s; }
+  /* Parla: la bocca si apre e si chiude */
+  [data-tema="allegra"] body.parla #cerchio { animation: parlotta .45s ease-in-out infinite; box-shadow: 0 0 90px rgba(255,126,179,.45); }
+  @keyframes parlotta { 50% { transform: scale(1.03, .97); } }
+  [data-tema="allegra"] body.parla .bocca { border: 0; background: #241446; width: 34px; margin-left: -17px; animation: bocca .32s ease-in-out infinite alternate; }
+  @keyframes bocca { from { height: 8px; border-radius: 0 0 20px 20px; } to { height: 26px; border-radius: 40% 40% 50% 50%; } }
+  [data-tema="allegra"] body.errore .s1 { background: linear-gradient(135deg, #ffb4a8, #f87171); }
+  [data-tema="allegra"] body.errore .bocca { border-bottom: 0; border-top: 5px solid #241446; border-radius: 40px 40px 0 0; }
+  [data-tema="allegra"] #stato { font-weight: 800; background: linear-gradient(90deg, #ffd36e, #ff7eb3, #7ef0ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  [data-tema="allegra"] #aiuto, [data-tema="allegra"] #detto { color: #e2d6ff; }
+  [data-tema="allegra"] #risposta:not(:empty) { background: rgba(255,255,255,.1); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,.2); border-radius: 28px; padding: 18px 28px; }
+  [data-tema="allegra"] #avvia { background: rgba(20,11,51,.95); }
+
+  /* ---------- RoboGiuliano: 4 pose, la bocca si muove quando parla ---------- */
+  .robo, .orbita, .onde { display: none; }
+  [data-tema="robo"] body { background: radial-gradient(ellipse at 50% 30%, #123c78 0%, #071433 48%, #02060f 84%); color: #eef6ff; }
+  [data-tema="robo"] #bolle { display: block; position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  [data-tema="robo"] #bolle span { position: absolute; bottom: -60px; border-radius: 50%; zoom: .35; --c: #5fd4ff; opacity: .6;
+    background: radial-gradient(circle, #fff, var(--c) 40%, transparent 70%); animation: sale var(--t) linear infinite; animation-delay: var(--d); }
+  [data-tema="robo"] .icona, [data-tema="robo"] .strato, [data-tema="robo"] .faccia { display: none; }
+  [data-tema="robo"] #cerchio { width: 570px; height: 380px; border-radius: 0; background: transparent; isolation: isolate; }
+  /* cerchio di luce dietro la testa */
+  [data-tema="robo"] #cerchio::before, [data-tema="robo"] #cerchio::after { content: ""; position: absolute; left: 50%; top: 46%; width: 350px; height: 350px;
+    margin: -175px 0 0 -175px; border-radius: 50%; z-index: -1; transition: filter .4s, opacity .4s; }
+  [data-tema="robo"] #cerchio::before { background: radial-gradient(circle, rgba(95,212,255,.35), rgba(60,90,220,.15) 55%, transparent 70%),
+    conic-gradient(from 0deg, transparent 0 20%, rgba(127,227,255,.9) 25%, transparent 32% 70%, rgba(201,182,255,.9) 75%, transparent 82%);
+    -webkit-mask: radial-gradient(circle, #000 64%, transparent 65%, transparent 68%, #000 69%, #000 70%, transparent 71%); mask: radial-gradient(circle, #000 64%, transparent 65%, transparent 68%, #000 69%, #000 70%, transparent 71%);
+    animation: ruota 8s linear infinite; }
+  [data-tema="robo"] #cerchio::after { background: radial-gradient(circle, rgba(95,170,255,.55), transparent 65%); filter: blur(30px); z-index: -2; }
+  [data-tema="robo"] .robo { display: block; position: absolute; inset: 0; animation: galleggia-lento 4.5s ease-in-out infinite; }
+  @keyframes galleggia-lento { 50% { transform: translateY(-8px); } }
+  [data-tema="robo"] .robo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transform: scale(.96);
+    transition: opacity .35s ease, transform .5s cubic-bezier(.2,.8,.2,1); filter: drop-shadow(0 10px 24px rgba(0,0,0,.45)); }
+  [data-tema="robo"] body:not(.ascolto):not(.pensa):not(.parla) .robo img[data-p="riposo"],
+  [data-tema="robo"] body.ascolto .robo img[data-p="ascolto"],
+  [data-tema="robo"] body.pensa .robo img[data-p="pensa"],
+  [data-tema="robo"] body.parla .robo img[data-p="parla"] { opacity: 1; transform: scale(1); }
+  /* mentre parla: bocca aperta → a metà → chiusa → a metà */
+  [data-tema="robo"] .robo img.p2, [data-tema="robo"] .robo img.p3 { transition: none; transform: none; }
+  [data-tema="robo"] body.parla .robo img.p2 { animation: bocca-meta .48s step-end infinite; }
+  [data-tema="robo"] body.parla .robo img.p3 { animation: bocca-chiusa .48s step-end infinite; }
+  @keyframes bocca-meta { 0% { opacity: 0; } 25% { opacity: 1; } 50% { opacity: 0; } 75% { opacity: 1; } }
+  @keyframes bocca-chiusa { 0%, 25% { opacity: 0; } 50% { opacity: 1; } 75% { opacity: 0; } }
+  /* lucine che girano e onde */
+  [data-tema="robo"] .orbita { display: block; position: absolute; left: 50%; top: 46%; width: 390px; height: 390px; margin: -195px 0 0 -195px;
+    border-radius: 50%; animation: ruota 6s linear infinite; pointer-events: none; z-index: -1; }
+  [data-tema="robo"] .orbita i { position: absolute; width: 10px; height: 10px; border-radius: 50%; top: -5px; left: calc(50% - 5px);
+    background: #d9f7ff; box-shadow: 0 0 10px #5fd4ff, 0 0 22px #5fd4ff; }
+  [data-tema="robo"] .orbita i + i { top: auto; bottom: -5px; background: #ece2ff; box-shadow: 0 0 10px #a98bff, 0 0 22px #8b5cff; }
+  [data-tema="robo"] .onde { display: block; position: absolute; left: 50%; top: 46%; width: 350px; height: 350px; margin: -175px 0 0 -175px; pointer-events: none; z-index: -1; }
+  [data-tema="robo"] .onde::before, [data-tema="robo"] .onde::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(95,212,255,.75); opacity: 0; }
+  [data-tema="robo"] body.ascolto .onde::before { animation: onda 1.6s ease-out infinite; }
+  [data-tema="robo"] body.ascolto .onde::after { animation: onda 1.6s ease-out .8s infinite; }
+  [data-tema="robo"] body.parla .onde::before { animation: onda 1s ease-out infinite; }
+  [data-tema="robo"] body.parla .onde::after { animation: onda 1s ease-out .5s infinite; }
+  [data-tema="robo"] body.ascolto #cerchio::before { animation-duration: 3s; filter: brightness(1.3); }
+  [data-tema="robo"] body.ascolto #cerchio::after { opacity: 1; filter: blur(30px) brightness(1.4); }
+  [data-tema="robo"] body.ascolto .orbita { animation-duration: 2.6s; }
+  [data-tema="robo"] body.pensa #cerchio::before { filter: hue-rotate(45deg); animation-duration: 1.4s; }
+  [data-tema="robo"] body.pensa .orbita { animation-duration: .9s; border: 2px dashed rgba(201,182,255,.4); }
+  [data-tema="robo"] body.errore #cerchio::after { background: radial-gradient(circle, rgba(255,80,100,.6), transparent 65%); }
+  [data-tema="robo"] #stato { font-weight: 800; background: linear-gradient(90deg, #7fe3ff, #ffffff 50%, #c9b6ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  [data-tema="robo"] #aiuto, [data-tema="robo"] #detto { color: #a9bfe6; }
+  [data-tema="robo"] #risposta:not(:empty) { background: rgba(255,255,255,.07); backdrop-filter: blur(18px); border: 1px solid rgba(127,227,255,.25); border-radius: 24px; padding: 18px 28px; }
+  [data-tema="robo"] #avvia { background: rgba(2,6,15,.95); }
+  /* Schermi bassi (portatili): tutto un po' più piccolo, così ci sta senza tagli */
+  @media (max-height: 820px) {
+    body { gap: 16px; }
+    #cerchio { zoom: .78; }
+    #stato { font-size: 36px; }
+    #aiuto { font-size: 22px; }
+    #detto { font-size: 21px; }
+    #risposta { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+  <div id="bolle" aria-hidden="true"><span style="left:6%;width:22px;height:22px;--c:#ffd36e;--t:14s;--d:-2s;--x:40px"></span><span style="left:15%;width:12px;height:12px;--c:#7ef0ff;--t:11s;--d:-7s;--x:-30px"></span><span style="left:24%;width:30px;height:30px;--c:#ff7eb3;--t:17s;--d:-4s;--x:50px"></span><span style="left:37%;width:14px;height:14px;--c:#a78bfa;--t:12s;--d:-9s;--x:-40px"></span><span style="left:48%;width:20px;height:20px;--c:#7ef0ff;--t:15s;--d:-1s;--x:30px"></span><span style="left:58%;width:10px;height:10px;--c:#ffd36e;--t:10s;--d:-5s;--x:-20px"></span><span style="left:67%;width:26px;height:26px;--c:#ff7eb3;--t:16s;--d:-11s;--x:45px"></span><span style="left:76%;width:16px;height:16px;--c:#a78bfa;--t:13s;--d:-3s;--x:-35px"></span><span style="left:85%;width:24px;height:24px;--c:#7ef0ff;--t:18s;--d:-8s;--x:30px"></span><span style="left:93%;width:12px;height:12px;--c:#ffd36e;--t:11s;--d:-6s;--x:-25px"></span></div>
+  <button id="cerchio" aria-label="Parla con l'assistente"><span class="strato s1"></span><span class="strato s2"></span><span class="strato s3"></span><span class="faccia"><span class="occhio sx"></span><span class="occhio dx"></span><span class="bocca"></span></span><span class="robo"><img data-p="riposo" src="/robo-riposo.webp" alt=""><img data-p="ascolto" src="/robo-ascolto.webp" alt=""><img data-p="pensa" src="/robo-pensa.webp" alt=""><img data-p="parla" src="/robo-parla.webp" alt=""><img data-p="parla" class="p2" src="/robo-parla-2.webp" alt=""><img data-p="parla" class="p3" src="/robo-parla-3.webp" alt=""></span><span class="orbita"><i></i><i></i></span><span class="onde"></span><span class="icona">🎙️</span></button>
+  <div id="stato">Un momento…</div>
+  <div id="aiuto">Di' <b>“Ehi <span class="nome">Claude</span>”</b> oppure tocca il cerchio</div>
+  <div id="detto"></div>
+  <div id="risposta"></div>
+  <div id="avvia"><span>👆</span>Tocca qui per iniziare</div>
+  <a id="impostazioni" href="/impostazioni">impostazioni</a>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const parametri = new URLSearchParams(location.search);
+  let NOME = "Claude";
+  // La parola per chiamarlo: accenti facoltativi; "Claude" viene spesso capito come "cloud", "clod"…
+  // "RoboGiuliano" va bene anche detto "robo Giuliano" o "robot Giuliano"; gli accenti non contano.
+  function creaSveglia(nome) {
+    const accenti = { a: "[aàá]", e: "[eèé]", i: "[iìí]", o: "[oòó]", u: "[uùú]" };
+    const parti = nome.trim().split(/[\s-]+|(?<=[a-zà-ú])(?=[A-ZÀ-Ú])/).filter(Boolean).map((p) =>
+      p.toLowerCase() === "robo" ? "robot?" : p.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/[aeiou]/g, (v) => accenti[v]));
+    const varianti = /^claude$/i.test(nome) ? "claude|claud|clod|clode|cloud|klod|klaud|cloude" : parti.join("[\\s-]*");
+    return new RegExp("(?<![\\p{L}])(?:ehi|hey|ei|ehy|ciao|ok)?\\s*(?:" + varianti + ")(?![\\p{L}])[,.!?]?\\s*", "iu");
+  }
+  let SVEGLIA = creaSveglia(NOME);
+  function usaNome(nome) {
+    NOME = (nome || "Claude").trim() || "Claude";
+    SVEGLIA = creaSveglia(NOME);
+    document.title = "Ehi " + NOME;
+    document.querySelectorAll(".nome").forEach((e) => (e.textContent = NOME));
+  }
+  const pronto = fetch("/config").then((r) => r.json()).catch(() => ({})).then((c) => {
+    const tema = parametri.get("tema") || c.tema || "allegra";
+    document.documentElement.dataset.tema = tema;
+    const robo = tema === "robo";
+    usaNome(parametri.get("nome") || c.nomeAssistente || (robo ? "RoboGiuliano" : "Aurora"));
+    tipoVoce = parametri.get("voce") || (c.voce && c.voce !== "auto" ? c.voce : robo ? "maschile" : "femminile");
+    scegliVoce();
+  });
+  const ATTESA_COMANDO = 8000;
+
+  let stato = "riposo";       // riposo | comando | pensa | parla
+  let timerComando = null;
+  let riconoscimento = null;
+  let voce = null;
+  let parlaSbloccato = true;
+
+  function mostra(nuovo, scritta) {
+    stato = nuovo;
+    document.body.className = { comando: "ascolto", pensa: "pensa", parla: "parla" }[nuovo] || "";
+    $("stato").textContent = scritta;
+    document.querySelector("#cerchio .icona").textContent = { comando: "👂", pensa: "💭", parla: "🗣️" }[nuovo] || "🎙️";
+  }
+  const aRiposo = () => mostra("riposo", "Sono qui");
+
+  // ---------- Voce che parla ----------
+  let tipoVoce = "femminile";
+  const NOMI_VOCE = { maschile: /diego|giuseppe|benigno|calimero|cataldo|gianni|gianfranco|lisandro|rinaldo|cosimo/i,
+                      femminile: /elsa|isabella|fabiola|fiamma|imelda|irma|palmira|pierina|cosima/i };
+  function scegliVoce() {
+    const voci = speechSynthesis.getVoices().filter((v) => v.lang && v.lang.toLowerCase().startsWith("it"));
+    const giuste = voci.filter((v) => NOMI_VOCE[tipoVoce].test(v.name));
+    voce = giuste.find((v) => /natural|online/i.test(v.name)) || giuste[0] || voci.find((v) => /natural|online/i.test(v.name)) || voci[0] || null;
+  }
+  speechSynthesis.onvoiceschanged = scegliVoce;
+  scegliVoce();
+
+  function pulisci(t) {
+    return t.replace(/https?:\/\/\S+/g, "").replace(/[*_#`>•]/g, "").replace(/\[id \d+\]/g, "").replace(/\s+/g, " ").trim();
+  }
+
+  // Le frasi lunghe vengono dette a pezzi: alcune voci si interrompono dopo 15 secondi.
+  function parla(testo) {
+    return new Promise((fatto) => {
+      const frasi = pulisci(testo).match(/[^.!?;:]+[.!?;:]*/g) || [testo];
+      let i = 0;
+      speechSynthesis.cancel();
+      const prossima = () => {
+        if (i >= frasi.length || stato !== "parla") return fatto();
+        const u = new SpeechSynthesisUtterance(frasi[i++].trim());
+        u.lang = "it-IT"; if (voce) u.voice = voce; u.rate = 0.95;
+        u.onend = prossima;
+        u.onerror = (e) => {
+          if (e.error === "not-allowed") { parlaSbloccato = false; $("avvia").style.display = "flex"; }
+          fatto();
+        };
+        speechSynthesis.speak(u);
+      };
+      prossima();
+    });
+  }
+
+  async function rispondi(testo, poiAscolta) {
+    fermaAscolto();
+    mostra("parla", "Ti rispondo");
+    $("risposta").textContent = testo;
+    await parla(testo);
+    if (stato !== "parla") return;
+    // Se ha fatto una domanda, ascolta subito la risposta senza bisogno di ridire il nome.
+    if (poiAscolta || /\?\s*$/.test(testo.trim())) aspettaComando(); else aRiposo();
+    avviaAscolto();
+  }
+
+  // ---------- Orecchio ----------
+  const Riconoscimento = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  function avviaAscolto() {
+    if (!Riconoscimento || riconoscimento) return;
+    const r = new Riconoscimento();
+    r.lang = "it-IT"; r.continuous = true; r.interimResults = true;
+    r.onresult = (ev) => {
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const frase = ev.results[i][0].transcript.trim();
+        if (stato === "comando") $("detto").textContent = "“" + frase + "”";
+        if (ev.results[i].isFinal) sentito(frase);
+      }
+    };
+    r.onerror = (e) => {
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+        mostra("riposo", "Non sento il microfono");
+        $("aiuto").textContent = "Serve il permesso del microfono: chiedi aiuto a tuo figlio.";
+        document.body.className = "errore";
+      }
+    };
+    // Il browser ogni tanto smette di ascoltare da solo: si riparte subito.
+    r.onend = () => { riconoscimento = null; if (stato !== "pensa" && stato !== "parla") setTimeout(avviaAscolto, 300); };
+    try { r.start(); riconoscimento = r; } catch {}
+  }
+  function fermaAscolto() {
+    if (riconoscimento) { const r = riconoscimento; riconoscimento = null; r.onend = null; try { r.abort(); } catch {} }
+  }
+
+  function aspettaComando() {
+    clearTimeout(timerComando);
+    mostra("comando", "Ti ascolto…");
+    $("detto").textContent = "";
+    timerComando = setTimeout(() => { if (stato === "comando") aRiposo(); }, ATTESA_COMANDO);
+  }
+
+  function sentito(frase) {
+    if (stato === "pensa" || stato === "parla") return;
+    if (stato === "comando") {
+      const comando = frase.replace(SVEGLIA, "").trim();
+      if (comando) invia(comando);
+      return;
+    }
+    const m = frase.match(SVEGLIA);
+    if (!m) return;
+    const resto = frase.slice(m.index + m[0].length).trim();
+    if (resto.split(/\s+/).length >= 2) invia(resto); else aspettaComando();
+  }
+
+  async function invia(testo) {
+    clearTimeout(timerComando);
+    fermaAscolto();
+    $("detto").textContent = "“" + testo + "”";
+    $("risposta").textContent = "";
+    mostra("pensa", "Ci penso…");
+    try {
+      const r = await fetch("/chiedi", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ testo }) });
+      const { risposta } = await r.json();
+      await rispondi(risposta || "Scusa, non ho capito.");
+    } catch {
+      await rispondi("Scusa, qualcosa non ha funzionato. Riprova.");
+    }
+  }
+
+  // ---------- Tocchi ----------
+  $("cerchio").onclick = () => {
+    if (stato === "parla") { speechSynthesis.cancel(); aRiposo(); avviaAscolto(); return; }
+    if (stato === "pensa") return;
+    aspettaComando();
+    avviaAscolto();
+  };
+  $("avvia").onclick = () => {
+    $("avvia").style.display = "none";
+    parlaSbloccato = true;
+    rispondi("Eccomi! Quando ti serve qualcosa, di' Ehi " + NOME + ".");
+  };
+
+  // Dopo un aggiornamento automatico la pagina si ricarica da sola (quando non sta parlando).
+  let versione = null;
+  setInterval(async () => {
+    try {
+      const v = (await (await fetch("/ping")).json()).versione;
+      if (versione && v !== versione && stato === "riposo") location.reload();
+      versione = v;
+    } catch {}
+  }, 60 * 1000);
+
+  if (!Riconoscimento) {
+    $("stato").textContent = "Questo browser non sente la voce";
+    $("aiuto").textContent = "Apri l'assistente con Microsoft Edge.";
+  } else {
+    pronto.then(() => setTimeout(() => rispondi("Ciao! Sono " + NOME + ". Quando ti serve qualcosa, di' Ehi " + NOME + "."), 600));
+  }
+</script>
+</body>
+</html>

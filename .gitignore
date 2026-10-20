@@ -1,0 +1,4 @@
+node_modules/
+uscita/
+*.exe
+*.blob
