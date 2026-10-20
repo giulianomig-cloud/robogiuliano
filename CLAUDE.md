@@ -1,4 +1,4 @@
-# Aurora assistente — istruzioni per Claude
+# RoboGiuliano (Aurora assistente) — istruzioni per Claude
 
 ## Lingua
 - Rispondi sempre in **italiano**, con spiegazioni semplici: l'utente (Giuliano) non è un programmatore.

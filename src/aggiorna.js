@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 
-const RILASCI = "https://github.com/giulianomig-cloud/aurora-assistente/releases/latest/download";
+const RILASCI = "https://github.com/giulianomig-cloud/robogiuliano/releases/latest/download";
 const VERSIONE = typeof __VERSIONE__ !== "undefined" ? __VERSIONE__ : "0.0.0-sviluppo";
 const OGNI = 6 * 60 * 60 * 1000;
 

@@ -1,4 +1,4 @@
-# Aurora · assistente vocale
+# RoboGiuliano · assistente vocale (Aurora e RoboGiuliano)
 
 Un assistente vocale per chi non è pratico di computer. Si accende da solo con Windows, si chiama a voce
 (*"Ehi Aurora…"* oppure *"Ehi RoboGiuliano…"*), risponde a voce e sa:
