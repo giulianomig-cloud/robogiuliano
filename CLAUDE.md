@@ -79,7 +79,7 @@
   microfono (`avviaVolume`, getUserMedia + AnalyserNode → `--vol`; se non va, nessun effetto); espressioni da parole della
   risposta (`umoreDi` → `data-umore` contenta/triste/sorpresa: Aurora occhi/sopracciglia/guance, robot luce verde/arancione/
   gialla, per 2,5 s dopo la risposta); luce del robot che pulsa a ogni parola. Scartato per ora: robot che sbattono le palpebre.
-- Immagini di RoboGiuliano pulite (dopo la 1.5, da pubblicare): con ChatGPT Giuliano non è riuscito a fare pose nuove, quindi
+- Immagini di RoboGiuliano pulite (v1.5.1): con ChatGPT Giuliano non è riuscito a fare pose nuove, quindi
   "opzione 1": contorno stretto di 1 px e sfumato, colori del bordo presi dall'interno, filtro bilaterale al 60%, colori -15%,
   contrasto -5% (script nella sessione, non nel repo). Yaymaris lasciata com'è (era già pulita).
 
@@ -91,7 +91,8 @@
   `releases/latest/download/versione.json` e si aggiorna da solo (`src/aggiorna.js`).
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
-## Stato (21/10/2026, v1.5.0)
+## Stato (21/10/2026, v1.5.1)
+- v1.5.1: solo immagini di RoboGiuliano pulite. iPhone: chiesto, deciso di NON farlo (resta solo Windows).
 - v1.5: registro per email, assistenza da remoto, finestra nuova (risposta grande, karaoke, cosa sta facendo), impostazioni
   a schede, avatar più vivi. Da verificare sul PC vero: onde col microfono, "Sto cercando su internet" in abbonamento,
   assistenza da remoto.
