@@ -299,11 +299,12 @@
     }
   }
   // ---------- Bocca a tempo con le parole: si apre e chiude per ogni sillaba (gruppo di vocali) ----------
-  let timerBocca = [];
+  let timerBocca = [], ultimaParola = 0;
   const bocca = (livello) => { document.body.dataset.bocca = livello; };
   function chiudiBocca() { timerBocca.forEach(clearTimeout); timerBocca = []; bocca(0); }
   function diciParola(parola) {
     chiudiBocca();
+    ultimaParola = Date.now();
     const sillabe = Math.max(1, Math.min(5, (parola.match(/[aeiouàèéìòù]+/gi) || []).length));
     for (let s = 0; s < sillabe; s++) {
       timerBocca.push(setTimeout(() => bocca(2), s * 130), setTimeout(() => bocca(1), s * 130 + 75));
@@ -378,12 +379,24 @@
         const u = new SpeechSynthesisUtterance(testoFrase);
         u.lang = "it-IT"; if (voce) u.voice = voce; u.rate = 0.95;
         // Se la voce dice a che parola è arrivata si segue quella, altrimenti si stima (circa 14 lettere al secondo).
-        let seguo = false;
-        u.onboundary = (e) => { if (e.name === "word" || e.name === undefined) { seguo = true; clearInterval(stima); arrivaA(inizio + e.charIndex); } };
-        u.onstart = () => {
-          const t0 = Date.now();
-          stima = setInterval(() => { if (!seguo) arrivaA(Math.min(fine - 1, inizio + (Date.now() - t0) * 0.014)); }, 120);
+        // Alcune voci di Edge mandano gli avvisi delle parole tutti insieme all'inizio, o non li mandano, o non
+        // dicono quando partono: per questo la stima c'è sempre e la bocca si muove comunque finché la voce parla.
+        let seguo = false, partita = false, t0 = Date.now();
+        const stimata = () => inizio + (Date.now() - t0) * 0.014;
+        u.onboundary = (e) => {
+          if (e.name !== "word" && e.name !== undefined) return;
+          const pos = inizio + e.charIndex;
+          if (pos > stimata() + 30) { seguo = false; return; }   // troppo avanti rispetto alla voce: non ci si fida
+          seguo = true; partita = true; arrivaA(pos);
         };
+        u.onstart = () => { partita = true; t0 = Date.now(); };
+        const avviata = Date.now();
+        stima = setInterval(() => {
+          if (!partita && Date.now() - avviata > 1500) { partita = true; t0 = Date.now(); }
+          if (!partita) return;
+          if (!seguo) arrivaA(Math.min(fine - 1, stimata()));
+          if (Date.now() - ultimaParola > 400) diciParola("bababa");
+        }, 120);
         u.onend = prossima;
         u.onerror = (e) => {
           if (e.error === "not-allowed") { parlaSbloccato = false; $("avvia").style.display = "flex"; }

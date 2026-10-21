@@ -92,6 +92,9 @@
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
 ## Stato (21/10/2026, v1.5.1)
+- Dopo la 1.5.1 (sul PC vero "non aprono più la bocca"): la bocca e il karaoke non dipendono più solo dagli avvisi
+  `onboundary` della voce (alcune voci di Edge li mandano tutti insieme, o mai, o senza `onstart`): stima sempre attiva,
+  avvisi troppo avanti rispetto alla stima ignorati, e se per 400 ms nessuna parola la bocca si muove da sola mentre parla.
 - v1.5.1: solo immagini di RoboGiuliano pulite. iPhone: chiesto, deciso di NON farlo (resta solo Windows).
 - v1.5: registro per email, assistenza da remoto, finestra nuova (risposta grande, karaoke, cosa sta facendo), impostazioni
   a schede, avatar più vivi. Da verificare sul PC vero: onde col microfono, "Sto cercando su internet" in abbonamento,
