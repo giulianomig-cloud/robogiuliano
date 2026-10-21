@@ -20,10 +20,18 @@ IMMAGINI["/robo-pensa.webp"] = require("./robo-pensa.webp");
 IMMAGINI["/robo-parla.webp"] = require("./robo-parla.webp");
 IMMAGINI["/robo-parla-2.webp"] = require("./robo-parla-2.webp");
 IMMAGINI["/robo-parla-3.webp"] = require("./robo-parla-3.webp");
+// Le pose di RoboYaymaris (stesse posizioni della bocca).
+IMMAGINI["/yaymaris-riposo.webp"] = require("./yaymaris-riposo.webp");
+IMMAGINI["/yaymaris-ascolto.webp"] = require("./yaymaris-ascolto.webp");
+IMMAGINI["/yaymaris-pensa.webp"] = require("./yaymaris-pensa.webp");
+IMMAGINI["/yaymaris-parla.webp"] = require("./yaymaris-parla.webp");
+IMMAGINI["/yaymaris-parla-2.webp"] = require("./yaymaris-parla-2.webp");
+IMMAGINI["/yaymaris-parla-3.webp"] = require("./yaymaris-parla-3.webp");
 // Icone per stile: la finestra e il collegamento sul desktop usano quella dello stile scelto.
 const ICONE = {
   robo: { png: require("./icona.png"), ico: require("./icona.ico") },
   allegra: { png: require("./icona-aurora.png"), ico: require("./icona-aurora.ico") },
+  yaymaris: { png: require("./icona-yaymaris.png"), ico: require("./icona-yaymaris.ico") },
 };
 const iconaDi = (cfg) => ICONE[(cfg && cfg.tema) || "allegra"] || ICONE.allegra;
 
@@ -99,7 +107,8 @@ const STRUMENTI = [
 const SI = /\b(s[iì]|ok|okay|va bene|invia(la)?|manda(la)?|spedisci(la)?|certo|esatto|confermo|d'accordo|procedi)\b/i;
 
 // Se il nome non è scelto, si usa quello dello stile.
-const nomeDi = (cfg) => cfg.nomeAssistente || (cfg.tema === "robo" ? "RoboGiuliano" : "Aurora");
+const NOMI = { allegra: "Aurora", robo: "RoboGiuliano", yaymaris: "RoboYaymaris" };
+const nomeDi = (cfg) => cfg.nomeAssistente || NOMI[cfg.tema] || "Aurora";
 
 function sistema(cfg) {
   return `Ti chiami ${nomeDi(cfg)} e sei l'assistente vocale di ${cfg.nome || "una signora"} sul suo computer. Lei non è pratica di computer e ti parla a voce: quello che scrivi viene letto ad alta voce da una sintesi vocale.
@@ -360,11 +369,11 @@ async function installaCollegamenti(exe, avvio, nome, cfg) {
     fs.copyFileSync(exe, dest);
   }
   // L'icona dello stile scelto, con il nome dello stile: se si cambia stile cambia anche il file, e Windows la aggiorna.
-  const icona = path.join(path.dirname(dest), `icona-${cfg && cfg.tema === "robo" ? "robogiuliano" : "aurora"}.ico`);
+  const icona = path.join(path.dirname(dest), `icona-${nomeDi({ tema: cfg && cfg.tema }).toLowerCase()}.ico`);
   fs.writeFileSync(icona, Buffer.from(iconaDi(cfg).ico, "base64"));
   const ps = `
 $s = New-Object -ComObject WScript.Shell
-foreach ($vecchio in @('Assistente Aurora.lnk', 'Ehi Claude.lnk', 'Aurora.lnk', 'RoboGiuliano.lnk', ${posta.psStr(nome + ".lnk")})) {
+foreach ($vecchio in @('Assistente Aurora.lnk', 'Ehi Claude.lnk', 'Aurora.lnk', 'RoboGiuliano.lnk', 'RoboYaymaris.lnk', ${posta.psStr(nome + ".lnk")})) {
   $f = Join-Path ([Environment]::GetFolderPath('Startup')) $vecchio; if (Test-Path $f) { Remove-Item $f }
   $f = Join-Path ([Environment]::GetFolderPath('Desktop')) $vecchio; if (Test-Path $f) { Remove-Item $f }
 }

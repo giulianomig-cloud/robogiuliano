@@ -137,6 +137,17 @@
   [data-tema="robo"] #aiuto, [data-tema="robo"] #detto { color: #a9bfe6; }
   [data-tema="robo"] #risposta:not(:empty) { background: rgba(255,255,255,.07); backdrop-filter: blur(18px); border: 1px solid rgba(127,227,255,.25); border-radius: 24px; padding: 18px 28px; }
   [data-tema="robo"] #avvia { background: rgba(2,6,15,.95); }
+  /* RoboYaymaris: stesso stile dei robot, nei toni rosa e viola */
+  [data-personaggio="yaymaris"] body { background: radial-gradient(ellipse at 50% 30%, #5a1f6e 0%, #2a0d3f 48%, #10040f 84%); }
+  [data-personaggio="yaymaris"] #cerchio::before { background: radial-gradient(circle, rgba(255,126,200,.35), rgba(160,80,220,.15) 55%, transparent 70%),
+    conic-gradient(from 0deg, transparent 0 20%, rgba(255,140,210,.9) 25%, transparent 32% 70%, rgba(190,150,255,.9) 75%, transparent 82%); }
+  [data-personaggio="yaymaris"] #cerchio::after { background: radial-gradient(circle, rgba(255,110,190,.5), transparent 65%); }
+  [data-personaggio="yaymaris"] .orbita i { background: #ffe0f2; box-shadow: 0 0 10px #ff7ec8, 0 0 22px #ff7ec8; }
+  [data-personaggio="yaymaris"] .onde::before, [data-personaggio="yaymaris"] .onde::after { border-color: rgba(255,126,200,.75); }
+  [data-personaggio="yaymaris"] #bolle span { --c: #ff8fd0; }
+  [data-personaggio="yaymaris"] #stato { background: linear-gradient(90deg, #ff9ad5, #ffffff 50%, #c9a6ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  [data-personaggio="yaymaris"] #aiuto, [data-personaggio="yaymaris"] #detto { color: #e4bfe0; }
+
   /* Schermi bassi (portatili): tutto un po' più piccolo, così ci sta senza tagli */
   @media (max-height: 820px) {
     body { gap: 16px; }
@@ -150,7 +161,7 @@
 </head>
 <body>
   <div id="bolle" aria-hidden="true"><span style="left:6%;width:22px;height:22px;--c:#ffd36e;--t:14s;--d:-2s;--x:40px"></span><span style="left:15%;width:12px;height:12px;--c:#7ef0ff;--t:11s;--d:-7s;--x:-30px"></span><span style="left:24%;width:30px;height:30px;--c:#ff7eb3;--t:17s;--d:-4s;--x:50px"></span><span style="left:37%;width:14px;height:14px;--c:#a78bfa;--t:12s;--d:-9s;--x:-40px"></span><span style="left:48%;width:20px;height:20px;--c:#7ef0ff;--t:15s;--d:-1s;--x:30px"></span><span style="left:58%;width:10px;height:10px;--c:#ffd36e;--t:10s;--d:-5s;--x:-20px"></span><span style="left:67%;width:26px;height:26px;--c:#ff7eb3;--t:16s;--d:-11s;--x:45px"></span><span style="left:76%;width:16px;height:16px;--c:#a78bfa;--t:13s;--d:-3s;--x:-35px"></span><span style="left:85%;width:24px;height:24px;--c:#7ef0ff;--t:18s;--d:-8s;--x:30px"></span><span style="left:93%;width:12px;height:12px;--c:#ffd36e;--t:11s;--d:-6s;--x:-25px"></span></div>
-  <button id="cerchio" aria-label="Parla con l'assistente"><span class="strato s1"></span><span class="strato s2"></span><span class="strato s3"></span><span class="faccia"><span class="occhio sx"></span><span class="occhio dx"></span><span class="bocca"></span></span><span class="robo"><img data-p="riposo" src="/robo-riposo.webp" alt=""><img data-p="ascolto" src="/robo-ascolto.webp" alt=""><img data-p="pensa" src="/robo-pensa.webp" alt=""><img data-p="parla" src="/robo-parla.webp" alt=""><img data-p="parla" class="p2" src="/robo-parla-2.webp" alt=""><img data-p="parla" class="p3" src="/robo-parla-3.webp" alt=""></span><span class="orbita"><i></i><i></i></span><span class="onde"></span><span class="icona">🎙️</span></button>
+  <button id="cerchio" aria-label="Parla con l'assistente"><span class="strato s1"></span><span class="strato s2"></span><span class="strato s3"></span><span class="faccia"><span class="occhio sx"></span><span class="occhio dx"></span><span class="bocca"></span></span><span class="robo"><img data-p="riposo" data-f="riposo" alt=""><img data-p="ascolto" data-f="ascolto" alt=""><img data-p="pensa" data-f="pensa" alt=""><img data-p="parla" data-f="parla" alt=""><img data-p="parla" data-f="parla-2" class="p2" alt=""><img data-p="parla" data-f="parla-3" class="p3" alt=""></span><span class="orbita"><i></i><i></i></span><span class="onde"></span><span class="icona">🎙️</span></button>
   <div id="stato">Un momento…</div>
   <div id="aiuto">Di' <b>“Ehi <span class="nome">Claude</span>”</b> oppure tocca il cerchio</div>
   <div id="detto"></div>
@@ -166,7 +177,7 @@
   function creaSveglia(nome) {
     const accenti = { a: "[aàá]", e: "[eèé]", i: "[iìí]", o: "[oòó]", u: "[uùú]" };
     const parti = nome.trim().split(/[\s-]+|(?<=[a-zà-ú])(?=[A-ZÀ-Ú])/).filter(Boolean).map((p) =>
-      p.toLowerCase() === "robo" ? "robot?" : p.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/[aeiou]/g, (v) => accenti[v]));
+      p.toLowerCase() === "robo" ? "robot?" : p.toLowerCase() === "yaymaris" ? "(?:y|j|i|gi|g)?h?a[iyj]?[\\s-]*mar[iy]s{0,2}" : p.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/[aeiou]/g, (v) => accenti[v]));
     const varianti = /^claude$/i.test(nome) ? "claude|claud|clod|clode|cloud|klod|klaud|cloude" : parti.join("[\\s-]*");
     return new RegExp("(?<![\\p{L}])(?:ehi|hey|ei|ehy|ciao|ok)?\\s*(?:" + varianti + ")(?![\\p{L}])[,.!?]?\\s*", "iu");
   }
@@ -177,13 +188,21 @@
     document.title = "Ehi " + NOME;
     document.querySelectorAll(".nome").forEach((e) => (e.textContent = NOME));
   }
+  const PERSONAGGI = {
+    allegra: { nome: "Aurora", voce: "femminile" },
+    robo: { nome: "RoboGiuliano", voce: "maschile", file: "robo" },
+    yaymaris: { nome: "RoboYaymaris", voce: "femminile", file: "yaymaris" },
+  };
   const pronto = fetch("/config").then((r) => r.json()).catch(() => ({})).then((c) => {
     if (c.versione) $("ver").textContent = "· v" + c.versione;
-    const tema = parametri.get("tema") || c.tema || "allegra";
-    document.documentElement.dataset.tema = tema;
-    const robo = tema === "robo";
-    usaNome(parametri.get("nome") || c.nomeAssistente || (robo ? "RoboGiuliano" : "Aurora"));
-    tipoVoce = parametri.get("voce") || (c.voce && c.voce !== "auto" ? c.voce : robo ? "maschile" : "femminile");
+    const tema = PERSONAGGI[parametri.get("tema") || c.tema] ? parametri.get("tema") || c.tema : "allegra";
+    const pers = PERSONAGGI[tema];
+    // I personaggi robot (RoboGiuliano, RoboYaymaris) hanno lo stesso stile: cambiano le foto e i colori.
+    document.documentElement.dataset.tema = pers.file ? "robo" : tema;
+    document.documentElement.dataset.personaggio = tema;
+    if (pers.file) document.querySelectorAll(".robo img").forEach((i) => (i.src = `/${pers.file}-${i.dataset.f}.webp`));
+    usaNome(parametri.get("nome") || c.nomeAssistente || pers.nome);
+    tipoVoce = parametri.get("voce") || (c.voce && c.voce !== "auto" ? c.voce : pers.voce);
     scegliVoce();
   });
   const ATTESA_COMANDO = 8000;

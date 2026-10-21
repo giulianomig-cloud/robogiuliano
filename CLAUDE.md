@@ -36,13 +36,18 @@
 - Le email partono solo con `prepara_email`/`prepara_risposta` + `invia_bozza`, e il server controlla che nel
   messaggio successivo ci sia un "sì" (regex `SI`): non fidarsi solo del modello.
 
-## Stili (decisi dall'utente: SOLO questi due)
+## Stili e personaggi (decisi dall'utente)
 - **Aurora** (`data-tema="allegra"`): goccia colorata con faccina (occhi che sbattono, bocca che parla),
   bollicine, onde. Voce femminile. "Ehi Aurora". È lo stile predefinito, da lasciare com'è.
 - **RoboGiuliano** (`data-tema="robo"`): avatar robot con la faccia di Giuliano, 4 pose
   (`src/robo-riposo|ascolto|pensa|parla.webp`, ricavate da un'immagine sua con lo sfondo tolto) + 2 posizioni della
   bocca (`robo-parla-2/3.webp`, mascella alzata) che si alternano mentre parla. Voce maschile.
   "Ehi RoboGiuliano" (accetta "robo/robot Giuliano"; "Giuliano" da solo NON lo sveglia).
+- **RoboYaymaris** (impostazione `tema: "yaymaris"`, in preparazione sul branch `in-corso`): terzo personaggio, stesso stile
+  dei robot (`data-tema="robo"` + `data-personaggio="yaymaris"` per i colori rosa/viola), 4 pose `src/yaymaris-*.webp`
+  (dall'immagine mandata da Giuliano, sfondo a scacchi tolto) + bocca `yaymaris-parla-2/3.webp`, icona `icona-yaymaris`.
+  "Ehi RoboYaymaris": il nome lo scrive il riconoscimento in tanti modi (yay/jay/ia/gia + maris), "robo/robot" obbligatorio.
+  Voce predefinita femminile (cambiabile nelle impostazioni).
 - Scartati (non riproporli): Classico crema/oro, Sfera, Ologramma, Aurora "vetro", Zeus (avatar neon e con la
   foto di Giuliano), le 4 facce con robottino e scritte.
 

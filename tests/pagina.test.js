@@ -12,15 +12,22 @@ test("il codice della pagina è scritto correttamente", () => {
   assert.doesNotThrow(() => new Function(codicePagina()));
 });
 
-test("ci sono solo gli stili Aurora e RoboGiuliano", () => {
+test("ci sono solo gli stili Aurora e robot, e i personaggi Aurora, RoboGiuliano e RoboYaymaris", () => {
   const temi = new Set([...pagina.matchAll(/data-tema="([a-z]+)"\]/g)].map((m) => m[1]));
   assert.deepStrictEqual([...temi].sort(), ["allegra", "robo"]);
+  for (const p of ["allegra:", "robo:", "yaymaris:"]) assert.ok(pagina.includes(p), p);
 });
 
-test("ogni immagine della pagina esiste ed è servita dal programma", () => {
+test("ogni foto dei personaggi esiste ed è servita dal programma", () => {
   const assistente = fs.readFileSync(path.join(src, "assistente.js"), "utf8");
-  for (const [, nome] of pagina.matchAll(/src="\/([\w-]+\.webp)"/g)) {
-    assert.ok(fs.existsSync(path.join(src, nome)), nome);
-    assert.ok(assistente.includes(`require("./${nome}")`), nome);
+  const pose = [...pagina.matchAll(/data-f="([\w-]+)"/g)].map((m) => m[1]);
+  assert.strictEqual(pose.length, 6);
+  for (const chi of ["robo", "yaymaris"]) {
+    for (const posa of pose) {
+      const nome = `${chi}-${posa}.webp`;
+      assert.ok(fs.existsSync(path.join(src, nome)), nome);
+      assert.ok(assistente.includes(`require("./${nome}")`), nome);
+    }
+    assert.ok(pagina.includes(`file: "${chi}"`), chi);
   }
 });
