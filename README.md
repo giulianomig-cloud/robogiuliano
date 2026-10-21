@@ -8,16 +8,19 @@ Un assistente vocale per chi non è pratico di computer. Si accende da solo con 
 - **rispondere** o scrivere email (solo dopo un *"sì"* detto ad alta voce);
 - avvisare se un'email sembra una **truffa**;
 - entrare da solo nell'area privata di **USI**, scaricare e **stampare i referti** (*"stampami l'ultimo referto"*);
+- riconoscere le **ricette del medico** (email o USI) e chiedere se vederle, **salvarle sul desktop** o stamparle;
+- controllare prima di stampare che la **stampante sia accesa** (altrimenti chiede di accenderla);
 - chiedere aiuto al figlio via email;
 - rispondere a domande di ogni giorno (ricette, parole, curiosità…);
 - con l'abbonamento Claude, anche **cercare su internet** (meteo, notizie, orari, numeri di negozi e uffici).
 
-Due stili, da scegliere nelle impostazioni:
+Tre personaggi, da scegliere nelle impostazioni:
 
 | Stile | Parola d'ordine | Voce |
 |---|---|---|
 | **Aurora**: faccina colorata che sbatte gli occhi, ascolta, pensa e parla | *"Ehi Aurora"* | femminile |
 | **RoboGiuliano**: avatar robot con 4 pose e la bocca che si muove | *"Ehi RoboGiuliano"* | maschile |
+| **RoboYaymaris**: avatar robot nei toni rosa, 4 pose e la bocca che si muove | *"Ehi RoboYaymaris"* | femminile |
 
 **Privacy:** email, password e chiave di Claude restano **solo sul computer dove è installato**
 (`%APPDATA%\AssistenteClaude\config.json`). In questo repository non c'è nessun dato personale.

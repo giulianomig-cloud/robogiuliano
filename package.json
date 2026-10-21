@@ -1,6 +1,6 @@
 {
   "name": "robogiuliano",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "private": true,
   "description": "Assistente vocale \"Ehi Aurora\" / \"Ehi RoboGiuliano\" per leggere, stampare e rispondere alle email Yahoo a voce.",
   "scripts": {
