@@ -15,7 +15,7 @@ fs.mkdirSync(uscita, { recursive: true });
 esbuild.buildSync({
   entryPoints: [path.join(radice, "src", "avvio.js")],
   bundle: true, platform: "node", target: "node22", format: "cjs",
-  loader: { ".html": "text", ".webp": "base64" },
+  loader: { ".html": "text", ".webp": "base64", ".png": "base64" },
   define: { __VERSIONE__: JSON.stringify(version) },
   outfile: path.join(uscita, "assistente.js"),
   logLevel: "warning",
@@ -37,9 +37,16 @@ if (!nodeExe) {
 }
 const exe = path.join(uscita, "AssistenteClaude.exe");
 fs.copyFileSync(nodeExe, exe);
+(async () => {
 if (process.platform === "win32") {
   // La firma digitale di node.exe non vale più dopo l'iniezione: si toglie se signtool c'è.
   try { execFileSync("signtool", ["remove", "/s", exe], { stdio: "ignore" }); } catch {}
+  // L'icona di RoboGiuliano e il nome del programma (si vedono sul desktop e nella barra delle applicazioni).
+  await require("rcedit")(exe, {
+    icon: path.join(radice, "src", "icona.ico"),
+    "version-string": { FileDescription: "Assistente vocale", ProductName: "RoboGiuliano" },
+    "product-version": version, "file-version": version,
+  });
 }
 execFileSync(process.execPath, [require.resolve("postject/dist/cli.js"), exe, "NODE_SEA_BLOB", path.join(uscita, "sea-prep.blob"),
   "--sentinel-fuse", "NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2"], { stdio: "inherit" });
@@ -55,3 +62,4 @@ fs.closeSync(fd);
 
 fs.writeFileSync(path.join(uscita, "versione.json"), JSON.stringify({ versione: version }));
 console.log(`Pronto: ${exe} (versione ${version})`);
+})().catch((e) => { console.error(e); process.exit(1); });

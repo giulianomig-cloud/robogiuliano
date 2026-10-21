@@ -52,7 +52,21 @@ jobs:
             $r2 = Invoke-WebRequest "http://127.0.0.1:7777/$img.webp" -UseBasicParsing
             if ($r2.StatusCode -ne 200 -or $r2.RawContentLength -lt 10000) { throw "Immagine mancante: $img" }
           }
+          $ico = Invoke-WebRequest http://127.0.0.1:7777/icona.png -UseBasicParsing
+          if ($ico.StatusCode -ne 200) { throw "Manca l'icona" }
           Stop-Process -Id $p.Id -Force
+
+          # Il ponte degli strumenti per Claude Code (modalità abbonamento) risponde?
+          $psi = New-Object System.Diagnostics.ProcessStartInfo 'uscita\AssistenteClaude.exe', '--mcp'
+          $psi.UseShellExecute = $false; $psi.RedirectStandardInput = $true; $psi.RedirectStandardOutput = $true
+          $m = [System.Diagnostics.Process]::Start($psi)
+          $m.StandardInput.WriteLine('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"prova","version":"1"}}}')
+          $r1 = $m.StandardOutput.ReadLineAsync(); if (-not $r1.Wait(30000)) { throw "Il ponte MCP non risponde" }
+          $m.StandardInput.WriteLine('{"jsonrpc":"2.0","method":"notifications/initialized"}')
+          $m.StandardInput.WriteLine('{"jsonrpc":"2.0","id":2,"method":"tools/list"}')
+          $r2 = $m.StandardOutput.ReadLineAsync(); if (-not $r2.Wait(30000)) { throw "Il ponte MCP non elenca gli strumenti" }
+          if ($r2.Result -notmatch 'elenco_email') { throw "Strumenti mancanti: $($r2.Result)" }
+          $m.Kill()
           Write-Host "Tutto a posto"
 
       - name: Prepara lo zip

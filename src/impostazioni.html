@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Impostazioni assistente</title>
+<link rel="icon" href="/icona.png">
 <style>
   :root { --sfondo: #f6f1e9; --carta: #fff; --testo: #1d1a16; --tenue: #6b6258; --oro: #d9a441; --verde: #2f9e5b; --rosso: #c63b2f; }
   * { box-sizing: border-box; }
@@ -23,6 +24,12 @@
   .ok { background: #e3f4ea; color: #1d5e37; }
   .no { background: #fbe5e2; color: #7d241b; }
   a { color: var(--testo); }
+  .scelta { display: grid; gap: 8px; }
+  .opzione { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin: 0; padding: 12px; border: 1px solid #d8d0c4; border-radius: 12px; cursor: pointer; }
+  .opzione input { width: 20px; height: 20px; margin-top: 2px; flex: none; }
+  .riquadro { margin-top: 12px; padding: 4px 14px 14px; background: #faf6ef; border-radius: 12px; }
+  .riquadro p { margin: 12px 0 8px; }
+  button.secondario { margin-top: 4px; width: auto; font-size: 16px; padding: 10px 16px; background: #1d1a16; color: #fff; }
 </style>
 </head>
 <body>
@@ -49,8 +56,23 @@
     <input name="email" type="email" autocomplete="off" placeholder="nome@yahoo.it" required>
     <label>Password per app di Yahoo <small>Quella da 16 lettere (Yahoo → Sicurezza account → Genera password per app). Non la password normale.</small></label>
     <input name="password" type="password" autocomplete="off" placeholder="xxxx xxxx xxxx xxxx">
-    <label>Chiave API di Claude <small>Da console.anthropic.com → API keys. Inizia con sk-ant-…</small></label>
-    <input name="apiKey" type="password" autocomplete="off" placeholder="sk-ant-…">
+    <label>Come si collega a Claude</label>
+    <div class="scelta">
+      <label class="opzione"><input type="radio" name="modo" value="abbonamento"> <span><b>Il mio abbonamento Claude</b> (Pro o Max)<small>Nessun costo in più: usa il credito mensile compreso nell'abbonamento. Sa anche cercare su internet (meteo, notizie, orari).</small></span></label>
+      <label class="opzione"><input type="radio" name="modo" value="chiave" checked> <span><b>Chiave API</b> (ricarica a consumo)<small>Si paga solo quello che si usa, da console.anthropic.com.</small></span></label>
+    </div>
+    <div id="perAbbonamento" class="riquadro">
+      <p><b>1.</b> Installa Claude Code (il programma ufficiale di Anthropic che usa l'abbonamento). <span id="statoClaude"></span></p>
+      <button type="button" class="secondario" id="installa">Installa Claude Code</button>
+      <p><b>2.</b> Collega il tuo account: si apre una finestra, entri con il tuo account Claude nel browser e alla fine compare un codice lungo che inizia con <code>sk-ant-oat</code>. Copialo e incollalo qui sotto.</p>
+      <button type="button" class="secondario" id="collega">Collega il mio account Claude</button>
+      <label>Codice dell'abbonamento</label>
+      <input name="tokenAbbonamento" type="password" autocomplete="off" placeholder="sk-ant-oat…">
+    </div>
+    <div id="perChiave" class="riquadro">
+      <label>Chiave API di Claude <small>Da console.anthropic.com → API keys. Inizia con sk-ant-…</small></label>
+      <input name="apiKey" type="password" autocomplete="off" placeholder="sk-ant-…">
+    </div>
     <label>Email del figlio <small>Dove arrivano le richieste di aiuto.</small></label>
     <input name="emailFiglio" type="email" autocomplete="off" placeholder="tuo.indirizzo@gmail.com">
     <label style="display:flex;gap:10px;align-items:center;font-weight:600;margin-top:18px"><input name="avvioAutomatico" type="checkbox" checked style="width:22px;height:22px">Apri da solo all'accensione di questo computer</label>
@@ -66,7 +88,31 @@
     f.nome.value = c.nome; f.tema.value = c.tema || "allegra"; f.voce.value = c.voce || "auto"; f.nomeAssistente.value = c.nomeAssistente; f.avvioAutomatico.checked = c.avvioAutomatico; f.email.value = c.email; f.emailFiglio.value = c.emailFiglio;
     if (c.haPassword) f.password.placeholder = "già salvata (lascia vuoto per non cambiarla)";
     if (c.haChiave) f.apiKey.placeholder = "già salvata (lascia vuoto per non cambiarla)";
+    if (c.haToken) f.tokenAbbonamento.placeholder = "già salvato (lascia vuoto per non cambiarlo)";
+    f.modo.value = c.modo || "chiave";
+    mostraModo();
   });
+  // Mostra solo i campi del collegamento scelto.
+  function mostraModo() {
+    document.getElementById("perAbbonamento").style.display = f.modo.value === "abbonamento" ? "" : "none";
+    document.getElementById("perChiave").style.display = f.modo.value === "chiave" ? "" : "none";
+    if (f.modo.value === "abbonamento") aggiornaStato();
+  }
+  for (const r of f.modo) r.onchange = mostraModo;
+  async function aggiornaStato() {
+    const s = await (await fetch("/stato-claude")).json();
+    document.getElementById("statoClaude").textContent = s.installato ? "✓ già installato" : "";
+  }
+  async function azione(id, url, attesa) {
+    const b = document.getElementById(id), testo = b.textContent;
+    b.disabled = true; b.textContent = attesa;
+    const r = await (await fetch(url, { method: "POST" })).json();
+    b.disabled = false; b.textContent = testo;
+    if (!r.ok) alert("Non riuscito: " + r.errore);
+    aggiornaStato();
+  }
+  document.getElementById("installa").onclick = () => azione("installa", "/installa-claude", "Installo… (un paio di minuti)");
+  document.getElementById("collega").onclick = () => azione("collega", "/collega-claude", "Apro la finestra…");
   f.onsubmit = async (e) => {
     e.preventDefault();
     const b = document.getElementById("salva"), out = document.getElementById("esiti");

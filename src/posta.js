@@ -167,9 +167,9 @@ function comeTesto(mail) {
   ].join("\n");
 }
 
-function powershell(comando) {
+function powershell(comando, attesa = 60000) {
   return new Promise((ok, ko) => {
-    execFile("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", comando], { windowsHide: true, timeout: 60000 },
+    execFile("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", comando], { windowsHide: true, timeout: attesa },
       (err, _out, stderr) => (err ? ko(new Error(stderr || err.message)) : ok()));
   });
 }

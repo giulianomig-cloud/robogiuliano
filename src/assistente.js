@@ -4,9 +4,11 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { spawn } = require("child_process");
+const crypto = require("crypto");
 const Anthropic = require("@anthropic-ai/sdk");
 const posta = require("./posta");
 const aggiorna = require("./aggiorna");
+const abbonamento = require("./abbonamento");
 const PAGINA = require("./pagina.html");
 const IMPOSTAZIONI = require("./impostazioni.html");
 // Le pose di RoboGiuliano (la bocca ha tre posizioni: aperta, a metà, chiusa).
@@ -17,6 +19,7 @@ IMMAGINI["/robo-pensa.webp"] = require("./robo-pensa.webp");
 IMMAGINI["/robo-parla.webp"] = require("./robo-parla.webp");
 IMMAGINI["/robo-parla-2.webp"] = require("./robo-parla-2.webp");
 IMMAGINI["/robo-parla-3.webp"] = require("./robo-parla-3.webp");
+const ICONA = require("./icona.png");
 
 const PORTA = 7777;
 const DIR = process.platform === "win32"
@@ -28,6 +31,8 @@ const MODELLO_PREDEFINITO = "claude-opus-5-5";
 const PAUSA_NUOVA_CONVERSAZIONE = 10 * 60 * 1000;
 const MAX_MESSAGGI = 40;
 const MAX_GIRI = 8;
+// Parola segreta tra il servizio e il ponte degli strumenti (modalità abbonamento).
+const SEGRETO = crypto.randomBytes(16).toString("hex");
 
 fs.mkdirSync(DIR, { recursive: true });
 function log(...cose) {
@@ -87,14 +92,16 @@ La posta (Yahoo):
 - Per scrivere a qualcuno di cui non sai l'indirizzo, cercalo tra le email ricevute; se non lo trovi, chiedilo.
 - Non usare mai la posta per pagamenti, banca o acquisti: in quei casi consiglia di sentire il figlio.
 
-Se qualcosa non funziona o lei è in difficoltà, rassicurala e proponi di chiedere aiuto al figlio con chiedi_aiuto.`;
+Se qualcosa non funziona o lei è in difficoltà, rassicurala e proponi di chiedere aiuto al figlio con chiedi_aiuto.${cfg.modo === "abbonamento" ? `
+
+Internet: per meteo, notizie, orari, numeri di negozi e uffici o altre cose di oggi usa la ricerca su internet (WebSearch, WebFetch) e riassumi in poche parole, senza dire i siti.` : ""}`;
 }
 
 // ---------- Conversazione ----------
 
 let conversazione = nuovaConversazione();
 function nuovaConversazione() {
-  return { messaggi: [], ultimo: 0, turno: 0, bozza: null };
+  return { messaggi: [], ultimo: 0, turno: 0, bozza: null, sessione: null, testoUtente: "" };
 }
 
 async function eseguiStrumento(nome, input, cfg, conv, testoUtente) {
@@ -135,12 +142,15 @@ async function eseguiStrumento(nome, input, cfg, conv, testoUtente) {
 
 async function chiedi(testoUtente) {
   const cfg = leggiConfig();
-  if (!cfg || !cfg.apiKey) return "Non sono ancora configurato. Serve l'aiuto di tuo figlio.";
-  const conv = Date.now() - conversazione.ultimo > PAUSA_NUOVA_CONVERSAZIONE || conversazione.messaggi.length > MAX_MESSAGGI
+  const conAbbonamento = cfg && cfg.modo === "abbonamento";
+  if (!cfg || (!conAbbonamento && !cfg.apiKey)) return "Non sono ancora configurato. Serve l'aiuto di tuo figlio.";
+  const conv = Date.now() - conversazione.ultimo > PAUSA_NUOVA_CONVERSAZIONE || conversazione.messaggi.length > MAX_MESSAGGI || conversazione.turno > MAX_MESSAGGI
     ? (conversazione = nuovaConversazione())
     : conversazione;
   conv.ultimo = Date.now();
   conv.turno++;
+  conv.testoUtente = testoUtente;
+  if (conAbbonamento) return chiediConAbbonamento(cfg, conv, testoUtente);
 
   const client = new Anthropic({ apiKey: cfg.apiKey });
   const modello = cfg.modello || MODELLO_PREDEFINITO;
@@ -191,7 +201,20 @@ async function chiedi(testoUtente) {
   return "Scusa, ci sto mettendo troppo. Riproviamo?";
 }
 
+// Modalità abbonamento: risponde Claude Code; gli strumenti della posta arrivano qui da /strumento.
+async function chiediConAbbonamento(cfg, conv, testoUtente) {
+  const adesso = new Date().toLocaleString("it-IT", { dateStyle: "full", timeStyle: "short" });
+  const [command, ...args] = process.env.ASSISTENTE_MCP ? JSON.parse(process.env.ASSISTENTE_MCP) : [process.execPath, "--mcp"];
+  const r = await abbonamento.chiedi({
+    cfg, testo: `[${adesso}] ${testoUtente}`, sistema: sistema(cfg), sessione: conv.sessione,
+    mcp: { command, args, env: { ASSISTENTE_TOKEN: SEGRETO } }, cartella: path.join(DIR, "abbonamento"),
+  });
+  conv.sessione = r.sessione;
+  return r.testo || "Fatto.";
+}
+
 function spiegaErrore(e) {
+  if (e instanceof abbonamento.ErroreAbbonamento) return abbonamento.spiegaErrore(e);
   if (e instanceof Anthropic.AuthenticationError) return "La chiave di Claude non funziona. Serve l'aiuto di tuo figlio.";
   if (e instanceof Anthropic.PermissionDeniedError) return "Il credito di Claude è finito o bloccato. Serve l'aiuto di tuo figlio.";
   if (e instanceof Anthropic.RateLimitError) return "Sono un po' occupato, riprova tra un minuto.";
@@ -210,6 +233,8 @@ async function salvaImpostazioni(dati) {
     email: (dati.email || "").trim(),
     password: (dati.password || "").replace(/\s+/g, "") || vecchia.password,
     apiKey: (dati.apiKey || "").trim() || vecchia.apiKey,
+    modo: dati.modo === "abbonamento" ? "abbonamento" : "chiave",
+    tokenAbbonamento: (dati.tokenAbbonamento || "").trim() || vecchia.tokenAbbonamento,
     emailFiglio: (dati.emailFiglio || "").trim(),
     nomeAssistente: (dati.nomeAssistente || "").trim(),
     tema: dati.tema || vecchia.tema || "allegra",
@@ -225,17 +250,22 @@ async function salvaImpostazioni(dati) {
     esiti.push({ ok: false, testo: `Posta Yahoo NON collegata: controlla email e password per app (${e.responseText || e.message}).` });
   }
   try {
-    await new Anthropic({ apiKey: cfg.apiKey }).messages.create({ model: cfg.modello || MODELLO_PREDEFINITO, max_tokens: 50, messages: [{ role: "user", content: "Rispondi solo: ok" }] });
-    esiti.push({ ok: true, testo: "Chiave di Claude funzionante." });
+    if (cfg.modo === "abbonamento") {
+      await chiediConAbbonamento(cfg, nuovaConversazione(), "Rispondi solo: ok");
+      esiti.push({ ok: true, testo: "Abbonamento Claude collegato." });
+    } else {
+      await new Anthropic({ apiKey: cfg.apiKey }).messages.create({ model: cfg.modello || MODELLO_PREDEFINITO, max_tokens: 50, messages: [{ role: "user", content: "Rispondi solo: ok" }] });
+      esiti.push({ ok: true, testo: "Chiave di Claude funzionante." });
+    }
   } catch (e) {
     log("prova claude", e);
-    esiti.push({ ok: false, testo: `Chiave di Claude NON funzionante: ${spiegaErrore(e)}` });
+    esiti.push({ ok: false, testo: `${cfg.modo === "abbonamento" ? "Abbonamento" : "Chiave di Claude"} NON funzionante: ${spiegaErrore(e)}` });
   }
   fs.writeFileSync(CONFIG, JSON.stringify(cfg, null, 2));
   if (process.platform === "win32" && process.env.ASSISTENTE_EXE) {
     try {
-      await installaCollegamenti(process.env.ASSISTENTE_EXE, cfg.avvioAutomatico);
-      esiti.push({ ok: true, testo: cfg.avvioAutomatico ? "Si aprirà da solo all'accensione. Icona \"Assistente Aurora\" sul desktop." : "Icona \"Assistente Aurora\" sul desktop (non si apre da solo all'accensione)." });
+      await installaCollegamenti(process.env.ASSISTENTE_EXE, cfg.avvioAutomatico, nomeDi(cfg));
+      esiti.push({ ok: true, testo: cfg.avvioAutomatico ? `Si aprirà da solo all'accensione. Icona "${nomeDi(cfg)}" sul desktop.` : `Icona "${nomeDi(cfg)}" sul desktop (non si apre da solo all'accensione).` });
     } catch (e) {
       log("collegamenti", e);
       esiti.push({ ok: false, testo: `Avvio automatico non impostato: ${e.message}` });
@@ -246,7 +276,7 @@ async function salvaImpostazioni(dati) {
 }
 
 // Copia il programma in AppData e crea l'avvio automatico e l'icona sul desktop.
-async function installaCollegamenti(exe, avvio) {
+async function installaCollegamenti(exe, avvio, nome) {
   const dest = path.join(process.env.LOCALAPPDATA || DIR, "AssistenteClaude", "AssistenteClaude.exe");
   if (path.resolve(exe).toLowerCase() !== path.resolve(dest).toLowerCase()) {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -254,17 +284,18 @@ async function installaCollegamenti(exe, avvio) {
   }
   const ps = `
 $s = New-Object -ComObject WScript.Shell
-foreach ($vecchio in @('Assistente Aurora.lnk', 'Ehi Claude.lnk')) {
+foreach ($vecchio in @('Assistente Aurora.lnk', 'Ehi Claude.lnk', 'Aurora.lnk', 'RoboGiuliano.lnk', ${posta.psStr(nome + ".lnk")})) {
   $f = Join-Path ([Environment]::GetFolderPath('Startup')) $vecchio; if (Test-Path $f) { Remove-Item $f }
   $f = Join-Path ([Environment]::GetFolderPath('Desktop')) $vecchio; if (Test-Path $f) { Remove-Item $f }
 }
 $cartelle = @([Environment]::GetFolderPath('Desktop'))
 if (${avvio ? "$true" : "$false"}) { $cartelle += [Environment]::GetFolderPath('Startup') }
 foreach ($p in $cartelle) {
-  $l = $s.CreateShortcut((Join-Path $p 'Assistente Aurora.lnk'))
+  $l = $s.CreateShortcut((Join-Path $p ${posta.psStr(nome + ".lnk")}))
   $l.TargetPath = ${posta.psStr(dest)}
   $l.WorkingDirectory = ${posta.psStr(path.dirname(dest))}
   $l.Description = 'Assistente vocale'
+  $l.IconLocation = ${posta.psStr(dest + ",0")}
   $l.Save()
 }`;
   await posta.powershell(ps);
@@ -318,9 +349,28 @@ function avviaServer() {
       if (req.method === "GET" && IMMAGINI[url]) { res.writeHead(200, { "Content-Type": "image/webp", "Cache-Control": "max-age=86400" }); return res.end(Buffer.from(IMMAGINI[url], "base64")); }
       if (req.method === "GET" && url === "/config") {
         const c = leggiConfig() || {};
-        return json({ avvioAutomatico: c.avvioAutomatico !== false, tema: c.tema || "allegra", nomeAssistente: c.nomeAssistente || "", voce: c.voce || "auto", nome: c.nome || "", email: c.email || "", emailFiglio: c.emailFiglio || "", haPassword: !!c.password, haChiave: !!c.apiKey });
+        return json({ avvioAutomatico: c.avvioAutomatico !== false, tema: c.tema || "allegra", nomeAssistente: c.nomeAssistente || "", voce: c.voce || "auto", nome: c.nome || "", email: c.email || "", emailFiglio: c.emailFiglio || "", haPassword: !!c.password, haChiave: !!c.apiKey, modo: c.modo || "chiave", haToken: !!c.tokenAbbonamento });
       }
       if (req.method === "POST" && url === "/salva") return json({ esiti: await salvaImpostazioni(await corpo(req)) });
+      if (req.method === "GET" && url === "/icona.png") { res.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "max-age=86400" }); return res.end(Buffer.from(ICONA, "base64")); }
+      // Strumenti della posta chiesti da Claude Code (modalità abbonamento), solo con la parola segreta.
+      if (req.method === "POST" && url === "/strumento") {
+        if (req.headers["x-assistente"] !== SEGRETO) return json({ errore: "vietato" }, 403);
+        const { nome, input } = await corpo(req);
+        try {
+          return json({ esito: await eseguiStrumento(String(nome).replace(/^mcp__posta__/, ""), input || {}, leggiConfig() || {}, conversazione, conversazione.testoUtente) });
+        } catch (e) {
+          log("strumento", nome, e);
+          return json({ errore: e.message });
+        }
+      }
+      if (req.method === "GET" && url === "/stato-claude") return json({ installato: !!abbonamento.trovaClaude(leggiConfig() || {}), windows: process.platform === "win32" });
+      if (req.method === "POST" && url === "/installa-claude") {
+        try { await abbonamento.installa(); return json({ ok: true }); } catch (e) { log("installa claude", e); return json({ ok: false, errore: e.message }); }
+      }
+      if (req.method === "POST" && url === "/collega-claude") {
+        try { abbonamento.apriCollegamento(leggiConfig() || {}); return json({ ok: true }); } catch (e) { return json({ ok: false, errore: e.message }); }
+      }
       if (req.method === "POST" && url === "/nuova") { conversazione = nuovaConversazione(); return json({ ok: true }); }
       if (req.method === "POST" && url === "/chiedi") {
         const { testo } = await corpo(req);
@@ -355,6 +405,11 @@ function giaAcceso() {
 async function main() {
   process.on("uncaughtException", (e) => log("eccezione", e));
   process.on("unhandledRejection", (e) => log("promessa", e));
+  // Ponte degli strumenti per Claude Code (modalità abbonamento): niente finestre, niente server.
+  if (process.argv.includes("--mcp")) {
+    await require("./mcp").avvia({ strumenti: STRUMENTI, porta: PORTA });
+    return;
+  }
   if (process.argv.includes("--servizio")) {
     avviaServer();
     aggiorna.avvia({ log, occupato: () => Date.now() - conversazione.ultimo < 2 * 60 * 1000, riavvia: aggiorna.riavviaServizio });

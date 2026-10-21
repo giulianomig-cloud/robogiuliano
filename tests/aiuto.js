@@ -4,7 +4,7 @@ const os = require("os");
 const path = require("path");
 
 require.extensions[".html"] = (m, f) => { m.exports = fs.readFileSync(f, "utf8"); };
-require.extensions[".webp"] = (m, f) => { m.exports = fs.readFileSync(f).toString("base64"); };
+require.extensions[".webp"] = require.extensions[".png"] = (m, f) => { m.exports = fs.readFileSync(f).toString("base64"); };
 
 function casaFinta(config) {
   const casa = fs.mkdtempSync(path.join(os.tmpdir(), "casa-"));

@@ -8,8 +8,16 @@
 - Programma Windows unico (`AssistenteClaude.exe`, Node "single executable"): un piccolo server locale
   (`src/assistente.js`, porta 7777) + una finestra di Edge in modalità app (`src/pagina.html`) che ascolta
   (Web Speech API, it-IT) e parla (speechSynthesis).
-- Claude via API (chiave dell'utente, ricarica a consumo, scelta "C"): modello `claude-opus-5-5`, `effort: low`,
-  fallback server-side `"default"`, strumenti per la posta in `src/assistente.js`.
+- Due modi di collegarsi a Claude (impostazione `modo`):
+  - `chiave` (API a consumo): modello `claude-opus-5-5`, `effort: low`, fallback server-side `"default"`,
+    strumenti per la posta in `src/assistente.js`.
+  - `abbonamento` (v1.1, abbonamento Pro di Giuliano, credito mensile per i programmi fatti in casa): `src/abbonamento.js`
+    lancia `claude -p` (Claude Code installato dalle impostazioni con l'installatore ufficiale, accesso con
+    `claude setup-token` → codice `sk-ant-oat…` in `tokenAbbonamento`, passato come `CLAUDE_CODE_OAUTH_TOKEN`;
+    `ANTHROPIC_API_KEY` tolta dall'ambiente). Solo `--tools WebSearch,WebFetch` + `--restricted` + `dontAsk`;
+    gli strumenti della posta arrivano da `AssistenteClaude.exe --mcp` (`src/mcp.js`), che li inoltra al servizio
+    (`POST /strumento` con parola segreta) dove c'è la conversazione e il controllo del "sì". `--resume` per continuare.
+- Icona del programma e della finestra: faccia di RoboGiuliano (`src/icona.ico`/`icona.png`, messa nell'exe con rcedit).
 - Posta Yahoo via IMAP/SMTP con **password per app** (`src/posta.js`); stampa silenziosa con PowerShell
   `Out-Printer` (stampante predefinita), allegati con `Start-Process -Verb Print`.
 - Impostazioni e dati personali SOLO in `%APPDATA%\AssistenteClaude\config.json` sul PC: **mai nel repository**

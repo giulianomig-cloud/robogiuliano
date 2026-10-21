@@ -1,0 +1,98 @@
+// Modalità "abbonamento": invece della chiave a consumo usa Claude Code con l'abbonamento Pro/Max di chi lo installa
+// (credito mensile per i programmi fatti in casa). Claude Code qui può solo cercare su internet e usare la posta.
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+const { spawn } = require("child_process");
+const posta = require("./posta");
+
+const ATTESA_MASSIMA = 3 * 60 * 1000;
+
+class ErroreAbbonamento extends Error {
+  constructor(tipo, messaggio) { super(messaggio); this.tipo = tipo; }
+}
+
+// Dove l'installatore ufficiale mette Claude Code; altrimenti si cerca "claude" tra i programmi del sistema.
+function trovaClaude(cfg = {}) {
+  const candidati = [
+    cfg.claudePath,
+    process.platform === "win32" ? path.join(os.homedir(), ".local", "bin", "claude.exe") : path.join(os.homedir(), ".local", "bin", "claude"),
+  ].filter(Boolean);
+  return candidati.find((c) => fs.existsSync(c)) || null;
+}
+
+function esegui(eseguibile, args, { input = "", env, cwd }) {
+  return new Promise((ok, ko) => {
+    const p = spawn(eseguibile, args, { env, cwd, windowsHide: true, shell: /\.cmd$/i.test(eseguibile) });
+    let out = "", err = "";
+    const timer = setTimeout(() => { p.kill(); ko(new ErroreAbbonamento("tempo", "Claude Code non ha risposto in tempo.")); }, ATTESA_MASSIMA);
+    p.stdout.on("data", (d) => (out += d));
+    p.stderr.on("data", (d) => (err += d));
+    p.on("error", (e) => { clearTimeout(timer); ko(new ErroreAbbonamento("mancante", e.message)); });
+    p.on("close", (codice) => { clearTimeout(timer); ok({ codice, out, err }); });
+    p.stdin.end(input);
+  });
+}
+
+// Una domanda a Claude Code. "sessione" continua la conversazione di prima (per "stampala", "sì, mandala"…).
+async function chiedi({ cfg, testo, sistema, sessione, mcp, cartella }) {
+  const claude = trovaClaude(cfg);
+  if (!claude) throw new ErroreAbbonamento("mancante", "Claude Code non è installato.");
+  fs.mkdirSync(cartella, { recursive: true });
+  const fileSistema = path.join(cartella, "istruzioni.txt");
+  const fileMcp = path.join(cartella, "strumenti.json");
+  fs.writeFileSync(fileSistema, sistema);
+  fs.writeFileSync(fileMcp, JSON.stringify({ mcpServers: { posta: { type: "stdio", ...mcp } } }));
+
+  const args = [
+    "-p", "--output-format", "json",
+    "--restricted", "--tools", "WebSearch,WebFetch",
+    "--mcp-config", fileMcp, "--strict-mcp-config",
+    "--allowedTools", "mcp__posta,WebSearch,WebFetch",
+    "--permission-mode", "dontAsk",
+    "--system-prompt-file", fileSistema,
+  ];
+  if (cfg.modelloAbbonamento) args.push("--model", cfg.modelloAbbonamento);
+  if (sessione) args.push("--resume", sessione);
+
+  const env = { ...process.env };
+  delete env.ANTHROPIC_API_KEY;            // altrimenti Claude Code userebbe la chiave a consumo invece dell'abbonamento
+  delete env.ANTHROPIC_AUTH_TOKEN;
+  if (cfg.tokenAbbonamento) env.CLAUDE_CODE_OAUTH_TOKEN = cfg.tokenAbbonamento;
+
+  const { codice, out, err } = await esegui(claude, args, { input: testo, env, cwd: cartella });
+  let r;
+  try { r = JSON.parse(out.trim().split("\n").pop()); } catch { r = null; }
+  if (!r || r.is_error || codice !== 0) {
+    const testoErrore = `${r ? r.result || r.subtype : ""} ${err}`.trim();
+    if (/log ?in|auth|token|401|credential|not logged/i.test(testoErrore)) throw new ErroreAbbonamento("accesso", testoErrore);
+    if (/limit|usage|credit|quota|429/i.test(testoErrore)) throw new ErroreAbbonamento("limite", testoErrore);
+    throw new ErroreAbbonamento("altro", testoErrore || `uscita ${codice}`);
+  }
+  return { testo: String(r.result || "").trim(), sessione: r.session_id };
+}
+
+// Installa Claude Code con l'installatore ufficiale (solo Windows).
+async function installa() {
+  await posta.powershell("Set-ExecutionPolicy -Scope Process Bypass -Force; irm https://claude.ai/install.ps1 | iex", 10 * 60 * 1000);
+  if (!trovaClaude()) throw new Error("Installazione non riuscita.");
+}
+
+// Apre una finestra dove si entra con il proprio account Claude: alla fine compare il codice da incollare.
+function apriCollegamento(cfg) {
+  const claude = trovaClaude(cfg);
+  if (!claude) throw new Error("Prima installa Claude Code.");
+  spawn("cmd.exe", ["/c", "start", "Collega-Claude", "cmd", "/k", claude, "setup-token"], { detached: true, stdio: "ignore" }).unref();
+}
+
+function spiegaErrore(e) {
+  switch (e.tipo) {
+    case "accesso": return "Il collegamento all'abbonamento di Claude non funziona più. Serve l'aiuto di tuo figlio.";
+    case "limite": return "Per questo mese ho finito il credito dell'abbonamento. Serve l'aiuto di tuo figlio.";
+    case "mancante": return "Manca un pezzo del programma. Serve l'aiuto di tuo figlio.";
+    case "tempo": return "Ci ho messo troppo a rispondere. Riprova tra poco.";
+    default: return "Claude in questo momento non risponde. Riprova tra poco.";
+  }
+}
+
+module.exports = { chiedi, installa, apriCollegamento, trovaClaude, spiegaErrore, ErroreAbbonamento };

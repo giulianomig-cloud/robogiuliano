@@ -8,7 +8,8 @@ Un assistente vocale per chi non è pratico di computer. Si accende da solo con 
 - **rispondere** o scrivere email (solo dopo un *"sì"* detto ad alta voce);
 - avvisare se un'email sembra una **truffa**;
 - chiedere aiuto al figlio via email;
-- rispondere a domande di ogni giorno (ricette, parole, curiosità…).
+- rispondere a domande di ogni giorno (ricette, parole, curiosità…);
+- con l'abbonamento Claude, anche **cercare su internet** (meteo, notizie, orari, numeri di negozi e uffici).
 
 Due stili, da scegliere nelle impostazioni:
 
@@ -24,8 +25,8 @@ Due stili, da scegliere nelle impostazioni:
 
 ## Installazione (circa 20 minuti, una volta sola)
 
-Servono: il PC (Windows) dove installarlo, la password di Yahoo, il telefono collegato a Yahoo,
-una carta per ricaricare Claude.
+Servono: il PC (Windows) dove installarlo, la password di Yahoo, il telefono collegato a Yahoo e
+**un abbonamento Claude Pro o Max** (oppure una carta per la ricarica a consumo).
 
 ### 1. Password per app di Yahoo
 1. Entra su **login.yahoo.com** con la posta da collegare.
@@ -34,7 +35,15 @@ una carta per ricaricare Claude.
 4. **Genera password per app** → nome `Claude` → **Genera**.
 5. Copia le **16 lettere** su un foglio: Yahoo non le mostra una seconda volta.
 
-### 2. La "ricarica" di Claude (chiave API)
+### 2. Come si collega a Claude: scegli uno dei due
+**A · Il tuo abbonamento Claude (Pro o Max) — consigliato.** Nessun costo in più: usa il credito mensile
+per i programmi "fatti in casa" compreso nell'abbonamento, separato dai limiti dell'app Claude.
+Si imposta al passo 4 con due pulsanti. Prima controlla su claude.ai → Impostazioni → Utilizzo che
+l'**uso extra** (a pagamento oltre il compreso) sia **spento**: così, se un mese il credito finisse, l'assistente
+si ferma fino al mese dopo invece di addebitare. Le regole di Anthropic su questo credito sono cambiate spesso:
+la pagina ufficiale è support.claude.com/articles/15036540.
+
+**B · Chiave API (ricarica a consumo).**
 1. Vai su **console.anthropic.com** e crea un account.
 2. **Billing**: carica del credito (es. 10 $) e imposta un **limite mensile** (es. 15 $).
 3. **API keys** → **Create key** → copia la chiave (`sk-ant-…`).
@@ -48,11 +57,18 @@ una carta per ricaricare Claude.
 
 ### 4. Impostazioni
 - **Nome** della persona, **Stile** (Aurora / RoboGiuliano), **Nome dell'assistente** (vuoto = quello dello stile), **Voce**.
-- **Email Yahoo**, **password per app** (le 16 lettere), **chiave di Claude**.
+- **Email Yahoo** e **password per app** (le 16 lettere).
+- **Come si collega a Claude**:
+  - *Il mio abbonamento*: **Installa Claude Code** (un paio di minuti) → **Collega il mio account Claude**: si apre
+    una finestra nera e il browser, entri con il tuo account; alla fine nella finestra compare un codice lungo che
+    inizia con `sk-ant-oat`: copialo nel campo **Codice dell'abbonamento**. Il tuo account resta collegato a quel PC
+    (puoi scollegarlo quando vuoi dalle impostazioni del tuo account Claude).
+  - *Chiave API*: incolla la chiave `sk-ant-…`.
 - **Email del figlio**: lì arrivano le richieste di aiuto.
 - **Apri da solo all'accensione**: lasciala accesa sul PC di chi lo usa, toglila se lo stai solo provando.
 
-Clic su **Salva e prova**: devono comparire le righe verdi ✓ (posta collegata, chiave funzionante, icona creata).
+Clic su **Salva e prova**: devono comparire le righe verdi ✓ (posta collegata, Claude collegato, icona creata).
+Sul desktop compare l'icona con la faccia di RoboGiuliano.
 
 ### 5. Microfono
 Clic su **Apri l'assistente** → Edge chiede il **microfono** → **Consenti** (una volta sola).
@@ -87,13 +103,15 @@ se c'è, la scarica e si riavvia da solo, mai mentre si sta parlando. Le imposta
 | Problema | Soluzione |
 |---|---|
 | "La chiave di Claude non funziona" / "credito finito" | console.anthropic.com → ricarica o nuova chiave → in basso a destra **impostazioni** |
+| "Il collegamento all'abbonamento non funziona più" | Impostazioni → **Collega il mio account Claude** di nuovo e incolla il codice nuovo |
+| "Per questo mese ho finito il credito dell'abbonamento" | Aspetta il mese dopo, oppure passa per un po' alla **Chiave API** nelle impostazioni |
 | Non legge la posta | Rifai la password per app di Yahoo e rimettila nelle impostazioni |
 | Non sente la voce | Microfono di Windows; in Edge: lucchetto accanto all'indirizzo → Microfono → Consenti |
 | Non stampa | Stampante accesa e **predefinita** |
 | Altro | Windows + R → `%APPDATA%\AssistenteClaude` → mandare il file `registro.txt` |
 
-**Costo:** si paga solo l'uso di Claude, stimato in **pochi euro al mese** con qualche richiesta al giorno
-(controllare su console.anthropic.com → Usage dopo la prima settimana).
+**Costo:** con l'abbonamento, niente in più finché si resta nel credito mensile compreso. Con la chiave API si paga
+solo l'uso, stimato in **pochi euro al mese** con qualche richiesta al giorno (console.anthropic.com → Usage).
 
 ---
 
