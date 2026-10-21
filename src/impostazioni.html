@@ -81,10 +81,12 @@
     <div id="esiti"></div>
   </form>
   <p class="sotto" style="margin-top:16px"><a href="/">← Torna all'assistente</a></p>
+  <p class="sotto" id="versione" translate="no"></p>
 </main>
 <script>
   const f = document.getElementById("modulo");
   fetch("/config").then((r) => r.json()).then((c) => {
+    document.getElementById("versione").textContent = "Versione " + c.versione + " · si aggiorna da sola";
     f.nome.value = c.nome; f.tema.value = c.tema || "allegra"; f.voce.value = c.voce || "auto"; f.nomeAssistente.value = c.nomeAssistente; f.avvioAutomatico.checked = c.avvioAutomatico; f.email.value = c.email; f.emailFiglio.value = c.emailFiglio;
     if (c.haPassword) f.password.placeholder = "già salvata (lascia vuoto per non cambiarla)";
     if (c.haChiave) f.apiKey.placeholder = "già salvata (lascia vuoto per non cambiarla)";

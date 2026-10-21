@@ -156,7 +156,7 @@
   <div id="detto"></div>
   <div id="risposta"></div>
   <div id="avvia"><span>👆</span>Tocca qui per iniziare</div>
-  <a id="impostazioni" href="/impostazioni">impostazioni</a>
+  <a id="impostazioni" href="/impostazioni">impostazioni <span id="ver" translate="no"></span></a>
 <script>
   const $ = (id) => document.getElementById(id);
   const parametri = new URLSearchParams(location.search);
@@ -178,6 +178,7 @@
     document.querySelectorAll(".nome").forEach((e) => (e.textContent = NOME));
   }
   const pronto = fetch("/config").then((r) => r.json()).catch(() => ({})).then((c) => {
+    if (c.versione) $("ver").textContent = "· v" + c.versione;
     const tema = parametri.get("tema") || c.tema || "allegra";
     document.documentElement.dataset.tema = tema;
     const robo = tema === "robo";
