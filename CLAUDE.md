@@ -91,7 +91,7 @@
   `releases/latest/download/versione.json` e si aggiorna da solo (`src/aggiorna.js`).
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
-## Stato (21/10/2026, v1.5.1)
+## Stato (21/10/2026, v1.5.2)
 - v1.5.2: sul PC vero con la 1.5.1 la bocca NON si apriva (le parole del karaoke invece si colorano: causa non trovata).
   Su richiesta di Giuliano ("se più sicuro rimettilo come era") la bocca è tornata come prima della 1.5: si apre e chiude a
   ritmo fisso mentre parla (keyframes `bocca`, `bocca-meta`, `bocca-chiusa`). `diciParola`/`data-bocca` restano solo per
