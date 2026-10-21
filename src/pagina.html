@@ -88,10 +88,8 @@
   /* Parla: la bocca si apre e si chiude */
   [data-tema="allegra"] body.parla #cerchio { animation: parlotta .45s ease-in-out infinite; box-shadow: 0 0 90px rgba(255,126,179,.45); }
   @keyframes parlotta { 50% { transform: scale(1.03, .97); } }
-  [data-tema="allegra"] body.parla .bocca { border: 0; background: #241446; width: 34px; margin-left: -17px; height: 8px; border-radius: 0 0 20px 20px; transition: height .07s, border-radius .07s; }
-  /* la bocca segue le parole: 0 chiusa, 1 a metà, 2 aperta (data-bocca sul body, messo da diciParola) */
-  [data-tema="allegra"] body.parla[data-bocca="1"] .bocca { height: 16px; border-radius: 40% 40% 50% 50%; }
-  [data-tema="allegra"] body.parla[data-bocca="2"] .bocca { height: 26px; border-radius: 40% 40% 50% 50%; }
+  [data-tema="allegra"] body.parla .bocca { border: 0; background: #241446; width: 34px; margin-left: -17px; animation: bocca .32s ease-in-out infinite alternate; }
+  @keyframes bocca { from { height: 8px; border-radius: 0 0 20px 20px; } to { height: 26px; border-radius: 40% 40% 50% 50%; } }
   [data-tema="allegra"] body.errore .s1 { background: linear-gradient(135deg, #ffb4a8, #f87171); }
   [data-tema="allegra"] body.errore .bocca { border-bottom: 0; border-top: 5px solid #241446; border-radius: 40px 40px 0 0; }
   [data-tema="allegra"] #stato { font-weight: 800; background: linear-gradient(90deg, #ffd36e, #ff7eb3, #7ef0ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -125,9 +123,10 @@
   [data-tema="robo"] body.parla .robo img[data-p="parla"] { opacity: 1; transform: scale(1); }
   /* mentre parla: bocca aperta → a metà → chiusa → a metà */
   [data-tema="robo"] .robo img.p2, [data-tema="robo"] .robo img.p3 { transition: none; transform: none; }
-  /* la bocca segue le parole: 0 chiusa (p3), 1 a metà (p2), 2 aperta (la posa "parla") */
-  [data-tema="robo"] body.parla[data-bocca="0"] .robo img.p3,
-  [data-tema="robo"] body.parla[data-bocca="1"] .robo img.p2 { opacity: 1; }
+  [data-tema="robo"] body.parla .robo img.p2 { animation: bocca-meta .48s step-end infinite; }
+  [data-tema="robo"] body.parla .robo img.p3 { animation: bocca-chiusa .48s step-end infinite; }
+  @keyframes bocca-meta { 0% { opacity: 0; } 25% { opacity: 1; } 50% { opacity: 0; } 75% { opacity: 1; } }
+  @keyframes bocca-chiusa { 0%, 25% { opacity: 0; } 50% { opacity: 1; } 75% { opacity: 0; } }
   /* lucine che girano e onde */
   [data-tema="robo"] .orbita { display: block; position: absolute; left: 50%; top: 46%; width: 390px; height: 390px; margin: -195px 0 0 -195px;
     border-radius: 50%; animation: ruota 6s linear infinite; pointer-events: none; z-index: -1; }

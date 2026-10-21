@@ -75,7 +75,7 @@
   (Mamma e personaggio con tessere-figura, Posta Yahoo, Claude, Referti USI, Aiuto del figlio, Programma), interruttori,
   "Salva e prova" sempre visibile. Campo obbligatorio vuoto in un'altra scheda → si apre quella scheda.
 - Avatar più vivi (v1.5, approvati 1-4): bocca a tempo con le parole (`diciParola`: per ogni sillaba `data-bocca` 2→1, poi 0;
-  robot: 0 = `p3`, 1 = `p2`, 2 = posa "parla"; Aurora: altezza della bocca); mentre ascolta onde/luce seguono il volume del
+  dalla v1.5.2 NON più per la bocca, vedi sotto); mentre ascolta onde/luce seguono il volume del
   microfono (`avviaVolume`, getUserMedia + AnalyserNode → `--vol`; se non va, nessun effetto); espressioni da parole della
   risposta (`umoreDi` → `data-umore` contenta/triste/sorpresa: Aurora occhi/sopracciglia/guance, robot luce verde/arancione/
   gialla, per 2,5 s dopo la risposta); luce del robot che pulsa a ogni parola. Scartato per ora: robot che sbattono le palpebre.
@@ -92,9 +92,10 @@
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
 ## Stato (21/10/2026, v1.5.1)
-- Dopo la 1.5.1 (sul PC vero "non aprono più la bocca"): la bocca e il karaoke non dipendono più solo dagli avvisi
-  `onboundary` della voce (alcune voci di Edge li mandano tutti insieme, o mai, o senza `onstart`): stima sempre attiva,
-  avvisi troppo avanti rispetto alla stima ignorati, e se per 400 ms nessuna parola la bocca si muove da sola mentre parla.
+- v1.5.2: sul PC vero con la 1.5.1 la bocca NON si apriva (le parole del karaoke invece si colorano: causa non trovata).
+  Su richiesta di Giuliano ("se più sicuro rimettilo come era") la bocca è tornata come prima della 1.5: si apre e chiude a
+  ritmo fisso mentre parla (keyframes `bocca`, `bocca-meta`, `bocca-chiusa`). `diciParola`/`data-bocca` restano solo per
+  la luce del robot che pulsa; la stima del karaoke è sempre attiva e ignora gli avvisi delle parole troppo avanti.
 - v1.5.1: solo immagini di RoboGiuliano pulite. iPhone: chiesto, deciso di NON farlo (resta solo Windows).
 - v1.5: registro per email, assistenza da remoto, finestra nuova (risposta grande, karaoke, cosa sta facendo), impostazioni
   a schede, avatar più vivi. Da verificare sul PC vero: onde col microfono, "Sto cercando su internet" in abbonamento,
