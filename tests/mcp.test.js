@@ -15,7 +15,7 @@ test("elenco degli strumenti e chiamata inoltrata al servizio", async () => {
     });
   });
   await new Promise((ok) => servizio.listen(0, "127.0.0.1", ok));
-  const avvio = `require.extensions[".html"]=(m)=>{m.exports=""};require.extensions[".webp"]=require.extensions[".png"]=(m)=>{m.exports=""};
+  const avvio = `require.extensions[".html"]=(m)=>{m.exports=""};require.extensions[".webp"]=require.extensions[".png"]=require.extensions[".ico"]=(m)=>{m.exports=""};
     require(${JSON.stringify(path.join(__dirname, "..", "src", "mcp"))}).avvia({ strumenti: require(${JSON.stringify(path.join(__dirname, "..", "src", "assistente"))}).STRUMENTI, porta: ${servizio.address().port} });`;
   const client = new Client({ name: "prova", version: "1" });
   await client.connect(new StdioClientTransport({ command: process.execPath, args: ["-e", avvio], env: { ...process.env, ASSISTENTE_TOKEN: "segreto-di-prova" } }));

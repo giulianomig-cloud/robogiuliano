@@ -72,7 +72,8 @@ la pagina ufficiale è support.claude.com/articles/15036540.
 - **Apri da solo all'accensione**: lasciala accesa sul PC di chi lo usa, toglila se lo stai solo provando.
 
 Clic su **Salva e prova**: devono comparire le righe verdi ✓ (posta collegata, Claude collegato, icona creata).
-Sul desktop compare l'icona con la faccia di RoboGiuliano.
+Sul desktop compare l'icona dello stile scelto (faccina di Aurora o faccia di RoboGiuliano): se cambi stile,
+premi di nuovo **Salva e prova** e cambia anche l'icona.
 
 ### 5. Microfono
 Clic su **Apri l'assistente** → Edge chiede il **microfono** → **Consenti** (una volta sola).
@@ -80,8 +81,9 @@ Clic su **Apri l'assistente** → Edge chiede il **microfono** → **Consenti** 
 ### 6. Stampante
 Impostazioni di Windows → **Bluetooth e dispositivi** → **Stampanti e scanner** → togli la spunta da
 *"Consenti a Windows di gestire la stampante predefinita"* → stampante giusta → **Imposta come predefinita**.
-Per stampare allegati e **referti** PDF serve **Adobe Acrobat Reader** (gratis): installalo e lascialo come programma
-predefinito per i PDF.
+Per stampare allegati e **referti** PDF installa **SumatraPDF** (gratis, sumatrapdf.org): l'assistente lo usa da solo
+per stampare senza aprire finestre. In alternativa va bene un lettore PDF predefinito che abbia la voce **"Stampa"**
+nel menu del tasto destro (Adobe Acrobat Reader, Foxit…); Edge come lettore predefinito non basta.
 
 ### 7. Prova
 - *"Ehi Aurora, ho email nuove?"*

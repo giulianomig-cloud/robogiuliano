@@ -15,7 +15,7 @@ fs.mkdirSync(uscita, { recursive: true });
 esbuild.buildSync({
   entryPoints: [path.join(radice, "src", "avvio.js")],
   bundle: true, platform: "node", target: "node22", format: "cjs",
-  loader: { ".html": "text", ".webp": "base64", ".png": "base64" },
+  loader: { ".html": "text", ".webp": "base64", ".png": "base64", ".ico": "base64" },
   define: { __VERSIONE__: JSON.stringify(version) },
   outfile: path.join(uscita, "assistente.js"),
   logLevel: "warning",

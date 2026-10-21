@@ -98,12 +98,8 @@ function crea({ email, password, nome = "", imapHost = "imap.mail.yahoo.com", im
 
   async function stampaAllegato({ id, numero = 1, cartella }) {
     const file = await salvaAllegato(id, numero, cartella);
-    try {
-      await powershell(`Start-Process -FilePath ${psStr(file)} -Verb Print -WindowStyle Hidden`);
-      return `Allegato mandato alla stampante. Una copia è in: ${file}`;
-    } catch {
-      throw new Error(`Non riesco a stamparlo da solo: manca un programma che sappia stampare questo tipo di file. L'ho salvato in: ${file}. Prova ad aprirlo e poi Ctrl+P.`);
-    }
+    await stampaFile(file);
+    return `Allegato mandato alla stampante. Una copia è in: ${file}`;
   }
 
   async function apriAllegato({ id, numero = 1, cartella }) {
@@ -183,17 +179,33 @@ async function stampaTesto(contenuto) {
   await powershell(`Get-Content -LiteralPath ${psStr(file)} -Encoding UTF8 | Out-Printer`);
 }
 
-// Stampa un file (PDF, foto…) sulla stampante predefinita: serve un programma che sappia stamparlo (es. Acrobat Reader).
+// SumatraPDF stampa i PDF sulla stampante predefinita senza aprire finestre, qualunque sia il lettore predefinito.
+function trovaSumatra() {
+  return [
+    path.join(process.env.LOCALAPPDATA || "", "SumatraPDF", "SumatraPDF.exe"),
+    path.join(process.env.ProgramFiles || "C:\\Program Files", "SumatraPDF", "SumatraPDF.exe"),
+    path.join(process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)", "SumatraPDF", "SumatraPDF.exe"),
+  ].find((p) => fs.existsSync(p));
+}
+
+// Stampa un file (PDF, foto…) sulla stampante predefinita: per i PDF prima SumatraPDF, altrimenti il comando "Stampa"
+// di Windows del programma predefinito (Acrobat Reader, Foxit…).
 async function stampaFile(file) {
   if (process.platform !== "win32") throw new Error("La stampa funziona solo su Windows.");
+  const sumatra = /\.pdf$/i.test(file) && trovaSumatra();
+  if (sumatra) {
+    await new Promise((ok, ko) => execFile(sumatra, ["-print-to-default", "-silent", file], { windowsHide: true, timeout: 120000 },
+      (err) => (err ? ko(err) : ok())));
+    return;
+  }
   try {
     await powershell(`Start-Process -FilePath ${psStr(file)} -Verb Print -WindowStyle Hidden`);
   } catch {
-    throw new Error(`Non riesco a stamparlo da solo: manca un programma che sappia stampare questo tipo di file (per i PDF serve Adobe Acrobat Reader). Il file è in: ${file}`);
+    throw new Error(`Non riesco a stamparlo da solo: manca un programma che sappia stampare questo tipo di file (per i PDF installa SumatraPDF o Adobe Acrobat Reader). Il file è in: ${file}`);
   }
 }
 async function apriFile(file) {
   if (process.platform === "win32") await powershell(`Start-Process -FilePath ${psStr(file)}`);
 }
 
-module.exports = { crea, powershell, psStr, stampaFile, apriFile };
+module.exports = { crea, powershell, psStr, stampaFile, apriFile, trovaSumatra };

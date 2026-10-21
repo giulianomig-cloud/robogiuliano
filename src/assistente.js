@@ -20,7 +20,12 @@ IMMAGINI["/robo-pensa.webp"] = require("./robo-pensa.webp");
 IMMAGINI["/robo-parla.webp"] = require("./robo-parla.webp");
 IMMAGINI["/robo-parla-2.webp"] = require("./robo-parla-2.webp");
 IMMAGINI["/robo-parla-3.webp"] = require("./robo-parla-3.webp");
-const ICONA = require("./icona.png");
+// Icone per stile: la finestra e il collegamento sul desktop usano quella dello stile scelto.
+const ICONE = {
+  robo: { png: require("./icona.png"), ico: require("./icona.ico") },
+  allegra: { png: require("./icona-aurora.png"), ico: require("./icona-aurora.ico") },
+};
+const iconaDi = (cfg) => ICONE[(cfg && cfg.tema) || "allegra"] || ICONE.allegra;
 
 const PORTA = 7777;
 const DIR = process.platform === "win32"
@@ -312,7 +317,7 @@ async function salvaImpostazioni(dati) {
   fs.writeFileSync(CONFIG, JSON.stringify(cfg, null, 2));
   if (process.platform === "win32" && process.env.ASSISTENTE_EXE) {
     try {
-      await installaCollegamenti(process.env.ASSISTENTE_EXE, cfg.avvioAutomatico, nomeDi(cfg));
+      await installaCollegamenti(process.env.ASSISTENTE_EXE, cfg.avvioAutomatico, nomeDi(cfg), cfg);
       esiti.push({ ok: true, testo: cfg.avvioAutomatico ? `Si aprirà da solo all'accensione. Icona "${nomeDi(cfg)}" sul desktop.` : `Icona "${nomeDi(cfg)}" sul desktop (non si apre da solo all'accensione).` });
     } catch (e) {
       log("collegamenti", e);
@@ -324,12 +329,15 @@ async function salvaImpostazioni(dati) {
 }
 
 // Copia il programma in AppData e crea l'avvio automatico e l'icona sul desktop.
-async function installaCollegamenti(exe, avvio, nome) {
+async function installaCollegamenti(exe, avvio, nome, cfg) {
   const dest = path.join(process.env.LOCALAPPDATA || DIR, "AssistenteClaude", "AssistenteClaude.exe");
   if (path.resolve(exe).toLowerCase() !== path.resolve(dest).toLowerCase()) {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.copyFileSync(exe, dest);
   }
+  // L'icona dello stile scelto, con il nome dello stile: se si cambia stile cambia anche il file, e Windows la aggiorna.
+  const icona = path.join(path.dirname(dest), `icona-${cfg && cfg.tema === "robo" ? "robogiuliano" : "aurora"}.ico`);
+  fs.writeFileSync(icona, Buffer.from(iconaDi(cfg).ico, "base64"));
   const ps = `
 $s = New-Object -ComObject WScript.Shell
 foreach ($vecchio in @('Assistente Aurora.lnk', 'Ehi Claude.lnk', 'Aurora.lnk', 'RoboGiuliano.lnk', ${posta.psStr(nome + ".lnk")})) {
@@ -343,10 +351,10 @@ foreach ($p in $cartelle) {
   $l.TargetPath = ${posta.psStr(dest)}
   $l.WorkingDirectory = ${posta.psStr(path.dirname(dest))}
   $l.Description = 'Assistente vocale'
-  $l.IconLocation = ${posta.psStr(dest + ",0")}
+  $l.IconLocation = ${posta.psStr(icona + ",0")}
   $l.Save()
 }`;
-  await posta.powershell(ps);
+  await posta.powershell(ps + "\nie4uinit.exe -show");
 }
 
 function apriFinestra(pagina = "") {
@@ -391,7 +399,7 @@ function avviaServer() {
         return json({ versione: aggiorna.VERSIONE, avvioAutomatico: c.avvioAutomatico !== false, tema: c.tema || "allegra", nomeAssistente: c.nomeAssistente || "", voce: c.voce || "auto", nome: c.nome || "", email: c.email || "", emailFiglio: c.emailFiglio || "", haPassword: !!c.password, haChiave: !!c.apiKey, modo: c.modo || "chiave", haToken: !!c.tokenAbbonamento, usiUtente: c.usiUtente || "", haUsi: !!c.usiPassword });
       }
       if (req.method === "POST" && url === "/salva") return json({ esiti: await salvaImpostazioni(await corpo(req)) });
-      if (req.method === "GET" && url === "/icona.png") { res.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "max-age=86400" }); return res.end(Buffer.from(ICONA, "base64")); }
+      if (req.method === "GET" && url === "/icona.png") { res.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "no-cache" }); return res.end(Buffer.from(iconaDi(leggiConfig()).png, "base64")); }
       // Strumenti della posta chiesti da Claude Code (modalità abbonamento), solo con la parola segreta.
       if (req.method === "POST" && url === "/strumento") {
         if (req.headers["x-assistente"] !== SEGRETO) return json({ errore: "vietato" }, 403);

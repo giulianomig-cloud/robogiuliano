@@ -25,7 +25,10 @@
   (`tests/sito-finto.js`) e con il vero Claude; il sito vero (www.usi.it/areaprivata/referti) NON si raggiunge
   dall'ambiente cloud: la prima prova vera è sul PC della madre. Notifica USI: "il suo referto è disponibile
   online all'indirizzo https://www.usi.it/areaprivata/referti" (niente PDF allegato).
-- Icona del programma e della finestra: faccia di RoboGiuliano (`src/icona.ico`/`icona.png`, messa nell'exe con rcedit).
+- Icone (v1.3): nell'exe sempre quella di RoboGiuliano (`src/icona.ico`, con rcedit); il collegamento sul desktop e la finestra
+  usano quella dello stile scelto (`icona.ico/png` RoboGiuliano, `icona-aurora.ico/png` Aurora): l'.ico viene scritta nella
+  cartella del programma con il nome dello stile e il collegamento la usa (`IconLocation`), poi `ie4uinit.exe -show`.
+- Stampa PDF (v1.3): prima SumatraPDF se installato (`-print-to-default -silent`), altrimenti il verbo "Print" del lettore predefinito.
 - Posta Yahoo via IMAP/SMTP con **password per app** (`src/posta.js`); stampa silenziosa con PowerShell
   `Out-Printer` (stampante predefinita), allegati con `Start-Process -Verb Print`.
 - Impostazioni e dati personali SOLO in `%APPDATA%\AssistenteClaude\config.json` sul PC: **mai nel repository**
