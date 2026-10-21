@@ -87,6 +87,11 @@ const STRUMENTI = [
     input_schema: { type: "object", properties: {} } },
   { name: "referto_mostra", description: "Apre sullo schermo l'ultimo referto scaricato.",
     input_schema: { type: "object", properties: {} } },
+  { name: "salva_sul_desktop", description: "Salva sul desktop un documento arrivato per email (es. una ricetta): l'allegato con quel numero, oppure, senza numero, il testo dell'email. Usalo solo dopo che lei ha detto di sì.",
+    input_schema: { type: "object", properties: { id: { type: "integer" }, numero: { type: "integer", description: "Numero dell'allegato; omettilo per salvare il testo dell'email." },
+      nome: { type: "string", description: "Nome chiaro del file, senza estensione, es. \"Ricetta 21-10-2026\"." }, cartella }, required: ["id", "nome"] } },
+  { name: "referto_salva_sul_desktop", description: "Salva sul desktop l'ultimo documento scaricato dal sito USI (referto o ricetta). Usalo solo dopo che lei ha detto di sì.",
+    input_schema: { type: "object", properties: { nome: { type: "string", description: "Nome chiaro del file, senza estensione, es. \"Ricetta 21-10-2026\"." } }, required: ["nome"] } },
   { name: "chiedi_aiuto", description: "Manda un'email al figlio per chiedergli aiuto (quando non riesci a fare qualcosa, o quando lei chiede di chiamarlo).",
     input_schema: { type: "object", properties: { messaggio: { type: "string", description: "Cosa serve, scritto in modo chiaro." } }, required: ["messaggio"] } },
 ];
@@ -120,6 +125,14 @@ Referti USI (analisi e visite):
 - Dille in parole semplici di che referto si tratta e la data, ma non interpretare i risultati medici: per quelli consiglia di sentire il medico.
 - Se il sito non funziona o i dati di accesso sono sbagliati, dillo con calma e proponi di chiedere aiuto al figlio.
 
+Ricette del medico:
+- Se in un'email (oggetto, testo o allegato) o sul sito USI trovi una ricetta medica (promemoria della ricetta elettronica, codice NRE, prescrizione di farmaci o esami), diglielo e chiedile: "Vuole vederla, salvarla sul desktop o stamparla?".
+- Fai quello che sceglie (anche più cose insieme):
+  vedere: apri_allegato o referto_mostra; se è solo nel testo dell'email, leggiglila;
+  salvare: salva_sul_desktop o referto_salva_sul_desktop, con un nome come "Ricetta 21-10-2026" (aggiungi il medico o il farmaco se li conosci), poi dille che la trova sul desktop;
+  stampare: stampa_allegato, stampa_email (se è nel testo) o referto_stampa.
+- Non salvare né stampare niente senza il suo sì.
+
 Se qualcosa non funziona o lei è in difficoltà, rassicurala e proponi di chiedere aiuto al figlio con chiedi_aiuto.${cfg.modo === "abbonamento" ? `
 
 Internet: per meteo, notizie, orari, numeri di negozi e uffici o altre cose di oggi usa la ricerca su internet (WebSearch, WebFetch) e riassumi in poche parole, senza dire i siti.` : ""}`;
@@ -151,6 +164,15 @@ async function eseguiStrumento(nome, input, cfg, conv, testoUtente) {
     case "sito_clicca": return sitoReferti(cfg).clicca(input.numero);
     case "sito_scrivi": return sitoReferti(cfg).scrivi(input.numero, input.testo, input.invio);
     case "sito_scarica": return sitoReferti(cfg).scarica(input.numero);
+    case "salva_sul_desktop": {
+      const dest = await p.salvaSulDesktop(input);
+      return `Salvato sul desktop come "${path.basename(dest)}".`;
+    }
+    case "referto_salva_sul_desktop": {
+      const file = nav && nav.ultimoScaricato();
+      if (!file) throw new Error("Non ho ancora scaricato nessun documento da USI.");
+      return `Salvato sul desktop come "${path.basename(posta.copiaSulDesktop(file, input.nome))}".`;
+    }
     case "referto_stampa":
     case "referto_mostra": {
       const file = nav && nav.ultimoScaricato();

@@ -96,6 +96,18 @@ function crea({ email, password, nome = "", imapHost = "imap.mail.yahoo.com", im
     });
   }
 
+  // Ricette e documenti sul desktop: l'allegato (PDF…) oppure, se non ce n'è, il testo dell'email.
+  async function salvaSulDesktop({ id, numero, cartella, nome }) {
+    if (numero) {
+      const file = await salvaAllegato(id, numero, cartella);
+      return copiaSulDesktop(file, nome);
+    }
+    const mail = await conCartella(cartella, (client) => scarica(client, id));
+    const tmp = path.join(os.tmpdir(), `email-${Date.now()}.txt`);
+    fs.writeFileSync(tmp, "\ufeff" + comeTesto(mail), "utf8");
+    return copiaSulDesktop(tmp, nome);
+  }
+
   async function stampaAllegato({ id, numero = 1, cartella }) {
     const file = await salvaAllegato(id, numero, cartella);
     await stampaFile(file);
@@ -135,7 +147,7 @@ function crea({ email, password, nome = "", imapHost = "imap.mail.yahoo.com", im
     return conCartella("INBOX", async (client) => client.status("INBOX", { messages: true, unseen: true }));
   }
 
-  return { elenco, leggi, cerca, stampa, stampaAllegato, apriAllegato, invia, rispondi, prova, destinatarioRisposta };
+  return { elenco, leggi, cerca, stampa, stampaAllegato, apriAllegato, salvaSulDesktop, invia, rispondi, prova, destinatarioRisposta };
 
   async function destinatarioRisposta({ id, cartella }) {
     const orig = await conCartella(cartella, (client) => scarica(client, id));
@@ -179,6 +191,31 @@ async function stampaTesto(contenuto) {
   await powershell(`Get-Content -LiteralPath ${psStr(file)} -Encoding UTF8 | Out-Printer`);
 }
 
+// La cartella del desktop vera (con OneDrive può non essere in C:\Users\nome\Desktop).
+let desktop = null;
+function cartellaDesktop() {
+  if (desktop) return desktop;
+  if (process.platform === "win32") {
+    try {
+      desktop = require("child_process").execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command",
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8; [Environment]::GetFolderPath('Desktop')"], { windowsHide: true, encoding: "utf8" }).trim();
+    } catch {}
+  }
+  desktop = desktop || path.join(os.homedir(), "Desktop");
+  return desktop;
+}
+
+// Copia un file sul desktop con un nome chiaro (es. "Ricetta 21-10-2026.pdf"), senza sovrascrivere quelli che ci sono.
+function copiaSulDesktop(file, nome) {
+  const est = path.extname(file) || ".pdf";
+  const base = String(nome || path.basename(file, est)).replace(/[\\/:*?"<>|]/g, "-").trim().slice(0, 80) || "Documento";
+  fs.mkdirSync(cartellaDesktop(), { recursive: true });
+  let dest = path.join(cartellaDesktop(), base + est);
+  for (let i = 2; fs.existsSync(dest); i++) dest = path.join(cartellaDesktop(), `${base} (${i})${est}`);
+  fs.copyFileSync(file, dest);
+  return dest;
+}
+
 // SumatraPDF stampa i PDF sulla stampante predefinita senza aprire finestre, qualunque sia il lettore predefinito.
 function trovaSumatra() {
   return [
@@ -208,4 +245,4 @@ async function apriFile(file) {
   if (process.platform === "win32") await powershell(`Start-Process -FilePath ${psStr(file)}`);
 }
 
-module.exports = { crea, powershell, psStr, stampaFile, apriFile, trovaSumatra };
+module.exports = { crea, powershell, psStr, stampaFile, apriFile, trovaSumatra, copiaSulDesktop, cartellaDesktop };
