@@ -110,6 +110,13 @@ Il programma installato controlla qui su GitHub (all'avvio e ogni 6 ore) se c'è
 se c'è, la scarica e si riavvia da solo, mai mentre si sta parlando. Le impostazioni restano.
 Per non aspettare: impostazioni → in fondo **Controlla aggiornamenti** (lì c'è anche il numero di versione).
 
+## Assistenza a distanza (vedere il registro senza disturbare)
+- Scrivi alla **casella Yahoo della mamma**, dal tuo indirizzo ("Email del figlio" nelle impostazioni), un'email con oggetto
+  **`registro`**. Entro 5 minuti ti arriva la risposta con `registro.txt` allegato e un riassunto (versione, programmi
+  installati); la tua richiesta finisce nel cestino.
+- Se ci sono errori, il registro ti arriva da solo (al massimo una volta al giorno).
+- Le conversazioni della mamma **non** ci sono (si possono includere con una spunta nelle impostazioni).
+
 ## Se qualcosa non va
 | Problema | Soluzione |
 |---|---|

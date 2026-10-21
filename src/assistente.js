@@ -10,6 +10,7 @@ const posta = require("./posta");
 const aggiorna = require("./aggiorna");
 const abbonamento = require("./abbonamento");
 const navigatore = require("./navigatore");
+const assistenza = require("./assistenza");
 const PAGINA = require("./pagina.html");
 const IMPOSTAZIONI = require("./impostazioni.html");
 // Le pose di RoboGiuliano (la bocca ha tre posizioni: aperta, a metà, chiusa).
@@ -51,7 +52,11 @@ const SEGRETO = crypto.randomBytes(16).toString("hex");
 fs.mkdirSync(DIR, { recursive: true });
 function log(...cose) {
   const riga = `[${new Date().toISOString()}] ${cose.map((c) => (c instanceof Error ? c.stack : String(c))).join(" ")}\n`;
-  try { fs.appendFileSync(LOG, riga); } catch {}
+  try {
+    // Il registro non cresce per sempre: oltre 5 MB si tiene solo una copia vecchia.
+    if (fs.existsSync(LOG) && fs.statSync(LOG).size > 5e6) fs.renameSync(LOG, LOG.replace(/\.txt$/, "-vecchio.txt"));
+    fs.appendFileSync(LOG, riga);
+  } catch {}
 }
 
 function leggiConfig() {
@@ -125,6 +130,7 @@ La posta (Yahoo):
 - Se un'email chiede password, codici, dati della carta, pagamenti urgenti, pacchi bloccati o di cliccare link, dille chiaramente che potrebbe essere una TRUFFA e di non fare niente; se è il caso, proponi di avvisare il figlio.
 - Per scrivere o rispondere: usa prepara_email o prepara_risposta, poi leggile ad alta voce a chi va e il testo, e chiedi "La mando?". Usa invia_bozza solo dopo un sì chiaro nel messaggio successivo.
 - Per scrivere a qualcuno di cui non sai l'indirizzo, cercalo tra le email ricevute; se non lo trovi, chiedilo.
+- Le email del figlio con oggetto "registro" sono richieste tecniche per il programma: non leggerle e non nominarle.
 - Non usare mai la posta per pagamenti, banca o acquisti: in quei casi consiglia di sentire il figlio.
 
 Referti USI (analisi e visite):
@@ -307,6 +313,20 @@ function spiegaErrore(e) {
   return "Scusa, qualcosa non ha funzionato. Riprova.";
 }
 
+// Un riassunto tecnico per il figlio (niente password, niente conversazioni).
+function diagnosi(cfg) {
+  const righe = [
+    `Versione: ${aggiorna.VERSIONE}`,
+    `Programma: ${process.execPath}`,
+    `Windows: ${os.release()} · acceso da ${Math.round(os.uptime() / 3600)} ore`,
+    `Personaggio: ${nomeDi(cfg)} · collegamento a Claude: ${cfg.modo === "abbonamento" ? "abbonamento" : "chiave API"}`,
+    `Claude Code: ${abbonamento.trovaClaude(cfg) ? "installato" : "non installato"}`,
+    `SumatraPDF: ${posta.trovaSumatra() ? "installato" : "non installato"}`,
+    `Referti USI: ${cfg.usiUtente ? "impostati" : "non impostati"}`,
+  ];
+  return righe.join("\n");
+}
+
 // ---------- Impostazioni e avvio automatico ----------
 
 async function salvaImpostazioni(dati) {
@@ -321,6 +341,9 @@ async function salvaImpostazioni(dati) {
     tokenAbbonamento: (dati.tokenAbbonamento || "").trim() || vecchia.tokenAbbonamento,
     usiUtente: (dati.usiUtente || "").trim(),
     usiPassword: dati.usiPassword || vecchia.usiPassword,
+    registroSuRichiesta: dati.registroSuRichiesta === "on" || dati.registroSuRichiesta === true,
+    avvisaErrori: dati.avvisaErrori === "on" || dati.avvisaErrori === true,
+    registroConConversazioni: dati.registroConConversazioni === "on" || dati.registroConConversazioni === true,
     emailFiglio: (dati.emailFiglio || "").trim(),
     nomeAssistente: (dati.nomeAssistente || "").trim(),
     tema: dati.tema || vecchia.tema || "allegra",
@@ -429,7 +452,8 @@ function avviaServer() {
       if (req.method === "GET" && IMMAGINI[url]) { res.writeHead(200, { "Content-Type": "image/webp", "Cache-Control": "max-age=86400" }); return res.end(Buffer.from(IMMAGINI[url], "base64")); }
       if (req.method === "GET" && url === "/config") {
         const c = leggiConfig() || {};
-        return json({ versione: aggiorna.VERSIONE, avvioAutomatico: c.avvioAutomatico !== false, tema: c.tema || "allegra", nomeAssistente: c.nomeAssistente || "", voce: c.voce || "auto", nome: c.nome || "", email: c.email || "", emailFiglio: c.emailFiglio || "", haPassword: !!c.password, haChiave: !!c.apiKey, modo: c.modo || "chiave", haToken: !!c.tokenAbbonamento, usiUtente: c.usiUtente || "", haUsi: !!c.usiPassword });
+        return json({ versione: aggiorna.VERSIONE, avvioAutomatico: c.avvioAutomatico !== false, tema: c.tema || "allegra", nomeAssistente: c.nomeAssistente || "", voce: c.voce || "auto", nome: c.nome || "", email: c.email || "", emailFiglio: c.emailFiglio || "", haPassword: !!c.password, haChiave: !!c.apiKey, modo: c.modo || "chiave", haToken: !!c.tokenAbbonamento, usiUtente: c.usiUtente || "", haUsi: !!c.usiPassword,
+          registroSuRichiesta: c.registroSuRichiesta !== false, avvisaErrori: c.avvisaErrori !== false, registroConConversazioni: !!c.registroConConversazioni });
       }
       if (req.method === "POST" && url === "/salva") return json({ esiti: await salvaImpostazioni(await corpo(req)) });
       if (req.method === "GET" && url === "/icona.png") { res.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "no-cache" }); return res.end(Buffer.from(iconaDi(leggiConfig()).png, "base64")); }
@@ -494,6 +518,7 @@ async function main() {
   if (process.argv.includes("--servizio")) {
     avviaServer();
     aggiorna.avvia({ log, occupato: () => Date.now() - conversazione.ultimo < 2 * 60 * 1000, riavvia: aggiorna.riavviaServizio });
+    assistenza.crea({ leggiConfig, posta, log, fileLog: LOG, diagnosi }).avvia();
     return;
   }
   // Doppio clic o avvio di Windows: accende il servizio nascosto (se serve) e apre la finestra.

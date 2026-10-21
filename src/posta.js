@@ -123,8 +123,8 @@ function crea({ email, password, nome = "", imapHost = "imap.mail.yahoo.com", im
   const smtp = () => nodemailer.createTransport({ host: smtpHost, port: 465, secure: true, auth: { user: EMAIL, pass: PASSWORD } });
   const da = () => (NOME ? `"${NOME}" <${EMAIL}>` : EMAIL);
 
-  async function invia({ a, oggetto, testo }) {
-    await smtp().sendMail({ from: da(), to: a, subject: oggetto, text: testo });
+  async function invia({ a, oggetto, testo, allegati }) {
+    await smtp().sendMail({ from: da(), to: a, subject: oggetto, text: testo, attachments: allegati });
     return `Email inviata a ${a}.`;
   }
 
@@ -143,11 +143,25 @@ function crea({ email, password, nome = "", imapHost = "imap.mail.yahoo.com", im
   }
 
   // Controlla subito che email e password per app funzionino.
+  // Richieste del figlio (oggetto con la parola giusta, mandate dal suo indirizzo): le conta e le sposta nel cestino.
+  async function prendiRichieste({ mittente, parola }) {
+    return conCartella("INBOX", async (client) => {
+      const trovate = await client.search({ from: mittente, subject: parola, seen: false }, { uid: true });
+      if (!trovate || !trovate.length) return 0;
+      await client.messageFlagsAdd(trovate, ["\\Seen"], { uid: true });
+      // Nel cestino; se la casella non lo permette, si cancella (è solo la richiesta del figlio).
+      let spostate = false;
+      try { spostate = !!(await client.messageMove(trovate, "Trash", { uid: true })); } catch {}
+      if (!spostate) { try { await client.messageDelete(trovate, { uid: true }); } catch {} }
+      return trovate.length;
+    });
+  }
+
   async function prova() {
     return conCartella("INBOX", async (client) => client.status("INBOX", { messages: true, unseen: true }));
   }
 
-  return { elenco, leggi, cerca, stampa, stampaAllegato, apriAllegato, salvaSulDesktop, invia, rispondi, prova, destinatarioRisposta };
+  return { elenco, leggi, cerca, stampa, stampaAllegato, apriAllegato, salvaSulDesktop, invia, rispondi, prova, destinatarioRisposta, prendiRichieste };
 
   async function destinatarioRisposta({ id, cartella }) {
     const orig = await conCartella(cartella, (client) => scarica(client, id));

@@ -51,6 +51,12 @@
 - Scartati (non riproporli): Classico crema/oro, Sfera, Ologramma, Aurora "vetro", Zeus (avatar neon e con la
   foto di Giuliano), le 4 facce con robottino e scritte.
 
+## Assistenza a distanza (v1.5, branch `in-corso`)
+- `src/assistenza.js`: ogni 5 minuti cerca nella posta della madre email non lette dal figlio (`emailFiglio`) con oggetto
+  "registro" → le sposta nel cestino (o le cancella) e manda SOLO a `emailFiglio` il registro (senza righe `lei:`/`claude:`,
+  salvo `registroConConversazioni`) + `diagnosi()`. Errori nelle ultime 24 ore → registro mandato da solo, max 1 al giorno.
+  Il registro ruota oltre 5 MB (`registro-vecchio.txt`).
+
 ## Versioni e aggiornamenti
 - La versione è `version` in `package.json` (finisce nell'exe come `__VERSIONE__`).
 - Push su `main` → GitHub Actions (`.github/workflows/rilascio.yml`, Windows): `npm test`, costruzione, prova
