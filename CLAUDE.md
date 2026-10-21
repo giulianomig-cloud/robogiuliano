@@ -51,7 +51,7 @@
 - Scartati (non riproporli): Classico crema/oro, Sfera, Ologramma, Aurora "vetro", Zeus (avatar neon e con la
   foto di Giuliano), le 4 facce con robottino e scritte.
 
-## Assistenza a distanza (v1.5, branch `in-corso`)
+## Assistenza a distanza (v1.5)
 - `src/assistenza.js`: ogni 5 minuti cerca nella posta della madre email non lette dal figlio (`emailFiglio`) con oggetto
   "registro" → le sposta nel cestino (o le cancella) e manda SOLO a `emailFiglio` il registro (senza righe `lei:`/`claude:`,
   salvo `registroConConversazioni`) + `diagnosi()`. Errori nelle ultime 24 ore → registro mandato da solo, max 1 al giorno.
@@ -88,7 +88,13 @@
   `releases/latest/download/versione.json` e si aggiorna da solo (`src/aggiorna.js`).
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
-## Stato (21/10/2026, v1.4.0)
+## Stato (21/10/2026, v1.5.0)
+- v1.5: registro per email, assistenza da remoto, finestra nuova (risposta grande, karaoke, cosa sta facendo), impostazioni
+  a schede, avatar più vivi. Da verificare sul PC vero: onde col microfono, "Sto cercando su internet" in abbonamento,
+  assistenza da remoto.
+- In attesa: Giuliano crea con ChatGPT pose nuove dei robot (riposo, ascolto, pensa, parla, bocca chiusa, occhi chiusi,
+  contento, dispiaciuto, sorpreso; 1536x1024 sfondo trasparente) → da ritagliare/allineare, collegare a `data-umore` e
+  allo sbattere delle palpebre, con video di prova prima di pubblicare.
 - v1.4: ricette (vedere/salvare sul desktop/stampare, strumenti `salva_sul_desktop`, `referto_salva_sul_desktop`),
   controllo stampante prima di stampare (`giudicaStampante`: spenta, finta tipo "Print to PDF", fogli in coda), RoboYaymaris.
 - Giuliano preferisce raccogliere più modifiche e pubblicarle insieme quando dice "pubblica": nel frattempo lavorare sul
