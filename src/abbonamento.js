@@ -79,10 +79,30 @@ async function installa() {
 }
 
 // Apre una finestra dove si entra con il proprio account Claude: alla fine compare il codice da incollare.
-function apriCollegamento(cfg) {
+// Si usa un piccolo file .cmd: con "start" e le virgolette scritte a mano Windows si confondeva
+// (prendeva il titolo per il nome del programma, e i percorsi con gli spazi si rompevano).
+function scriviCollegamento(claude, cartella) {
+  fs.mkdirSync(cartella, { recursive: true });
+  const file = path.join(cartella, "collega-claude.cmd");
+  fs.writeFileSync(file, [
+    "@echo off",
+    "title Collega Claude",
+    "echo Si apre il browser: entra con il tuo account Claude e conferma.",
+    "echo.",
+    `"${claude}" setup-token`,
+    "echo.",
+    "echo Copia il codice che inizia con sk-ant-oat (selezionalo col mouse e premi Invio),",
+    "echo poi incollalo nelle impostazioni dell'assistente, nel campo Codice dell'abbonamento.",
+    "pause",
+  ].join("\r\n") + "\r\n");
+  return file;
+}
+
+function apriCollegamento(cfg, cartella = os.tmpdir()) {
   const claude = trovaClaude(cfg);
   if (!claude) throw new Error("Prima installa Claude Code.");
-  spawn("cmd.exe", ["/c", "start", "Collega-Claude", "cmd", "/k", claude, "setup-token"], { detached: true, stdio: "ignore" }).unref();
+  const file = scriviCollegamento(claude, cartella);
+  spawn("cmd.exe", ["/c", "start", "", file], { detached: true, stdio: "ignore", windowsHide: true }).unref();
 }
 
 function spiegaErrore(e) {
@@ -95,4 +115,4 @@ function spiegaErrore(e) {
   }
 }
 
-module.exports = { chiedi, installa, apriCollegamento, trovaClaude, spiegaErrore, ErroreAbbonamento };
+module.exports = { chiedi, installa, apriCollegamento, scriviCollegamento, trovaClaude, spiegaErrore, ErroreAbbonamento };

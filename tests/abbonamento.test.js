@@ -60,3 +60,11 @@ test("credito finito: lo dice in modo semplice", async () => {
     return true;
   });
 });
+
+test("la finestra per collegare l'account usa il percorso giusto anche con gli spazi", () => {
+  const { scriviCollegamento } = require("../src/abbonamento");
+  const claude = path.join("C:", "Users", "Maria Rossi", ".local", "bin", "claude.exe");
+  const testo = fs.readFileSync(scriviCollegamento(claude, fs.mkdtempSync(path.join(os.tmpdir(), "coll-"))), "utf8");
+  assert.ok(testo.includes(`"${claude}" setup-token`));
+  assert.match(testo, /\r\npause\r\n$/);
+});
