@@ -79,6 +79,9 @@
   microfono (`avviaVolume`, getUserMedia + AnalyserNode → `--vol`; se non va, nessun effetto); espressioni da parole della
   risposta (`umoreDi` → `data-umore` contenta/triste/sorpresa: Aurora occhi/sopracciglia/guance, robot luce verde/arancione/
   gialla, per 2,5 s dopo la risposta); luce del robot che pulsa a ogni parola. Scartato per ora: robot che sbattono le palpebre.
+- Immagini di RoboGiuliano pulite (dopo la 1.5, da pubblicare): con ChatGPT Giuliano non è riuscito a fare pose nuove, quindi
+  "opzione 1": contorno stretto di 1 px e sfumato, colori del bordo presi dall'interno, filtro bilaterale al 60%, colori -15%,
+  contrasto -5% (script nella sessione, non nel repo). Yaymaris lasciata com'è (era già pulita).
 
 ## Versioni e aggiornamenti
 - La versione è `version` in `package.json` (finisce nell'exe come `__VERSIONE__`).
