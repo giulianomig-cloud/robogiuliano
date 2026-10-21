@@ -9,6 +9,7 @@ const Anthropic = require("@anthropic-ai/sdk");
 const posta = require("./posta");
 const aggiorna = require("./aggiorna");
 const abbonamento = require("./abbonamento");
+const navigatore = require("./navigatore");
 const PAGINA = require("./pagina.html");
 const IMPOSTAZIONI = require("./impostazioni.html");
 // Le pose di RoboGiuliano (la bocca ha tre posizioni: aperta, a metà, chiusa).
@@ -66,6 +67,21 @@ const STRUMENTI = [
     input_schema: { type: "object", properties: { id: { type: "integer" }, testo: { type: "string" }, cartella }, required: ["id", "testo"] } },
   { name: "invia_bozza", description: "Invia l'email preparata. Usalo SOLO se nel suo ultimo messaggio la persona ha detto chiaramente di sì all'invio.",
     input_schema: { type: "object", properties: {} } },
+  // Referti USI: Claude guida un Edge nascosto che può aprire solo usi.it.
+  { name: "referti_apri", description: "Apre l'area privata dei referti USI (www.usi.it/areaprivata/referti) e restituisce cosa c'è nella pagina, con gli elementi numerati.",
+    input_schema: { type: "object", properties: {} } },
+  { name: "sito_leggi", description: "Rilegge la pagina del sito dei referti aperta adesso.",
+    input_schema: { type: "object", properties: {} } },
+  { name: "sito_clicca", description: "Clicca l'elemento con quel numero nella pagina dei referti e restituisce la pagina nuova.",
+    input_schema: { type: "object", properties: { numero: { type: "integer" } }, required: ["numero"] } },
+  { name: "sito_scrivi", description: "Scrive in un campo della pagina dei referti. Per i dati di accesso scrivi esattamente UTENTE_USI o PASSWORD_USI: il programma li sostituisce con quelli salvati (tu non li conosci). invio=true per inviare il modulo subito dopo.",
+    input_schema: { type: "object", properties: { numero: { type: "integer" }, testo: { type: "string" }, invio: { type: "boolean" } }, required: ["numero", "testo"] } },
+  { name: "sito_scarica", description: "Scarica il referto (PDF) del collegamento o pulsante con quel numero.",
+    input_schema: { type: "object", properties: { numero: { type: "integer" } }, required: ["numero"] } },
+  { name: "referto_stampa", description: "Stampa l'ultimo referto scaricato sulla stampante predefinita.",
+    input_schema: { type: "object", properties: {} } },
+  { name: "referto_mostra", description: "Apre sullo schermo l'ultimo referto scaricato.",
+    input_schema: { type: "object", properties: {} } },
   { name: "chiedi_aiuto", description: "Manda un'email al figlio per chiedergli aiuto (quando non riesci a fare qualcosa, o quando lei chiede di chiamarlo).",
     input_schema: { type: "object", properties: { messaggio: { type: "string", description: "Cosa serve, scritto in modo chiaro." } }, required: ["messaggio"] } },
 ];
@@ -92,6 +108,13 @@ La posta (Yahoo):
 - Per scrivere a qualcuno di cui non sai l'indirizzo, cercalo tra le email ricevute; se non lo trovi, chiedilo.
 - Non usare mai la posta per pagamenti, banca o acquisti: in quei casi consiglia di sentire il figlio.
 
+Referti USI (analisi e visite):
+- Quando chiede i referti, o un'email/SMS dice che un referto USI è disponibile, usa referti_apri. Se c'è da entrare, scrivi UTENTE_USI nel campo dell'utente (o codice fiscale) e PASSWORD_USI nel campo della password con sito_scrivi, poi entra.
+- Se il sito chiede un codice arrivato per SMS, chiedile di leggertelo ad alta voce e scrivilo tu.
+- Trova il referto più recente (o quello che chiede), scaricalo con sito_scarica e stampalo con referto_stampa, a meno che non chieda solo di vederlo (referto_mostra).
+- Dille in parole semplici di che referto si tratta e la data, ma non interpretare i risultati medici: per quelli consiglia di sentire il medico.
+- Se il sito non funziona o i dati di accesso sono sbagliati, dillo con calma e proponi di chiedere aiuto al figlio.
+
 Se qualcosa non funziona o lei è in difficoltà, rassicurala e proponi di chiedere aiuto al figlio con chiedi_aiuto.${cfg.modo === "abbonamento" ? `
 
 Internet: per meteo, notizie, orari, numeri di negozi e uffici o altre cose di oggi usa la ricerca su internet (WebSearch, WebFetch) e riassumi in poche parole, senza dire i siti.` : ""}`;
@@ -104,9 +127,32 @@ function nuovaConversazione() {
   return { messaggi: [], ultimo: 0, turno: 0, bozza: null, sessione: null, testoUtente: "" };
 }
 
+// Un solo navigatore per i referti, chiuso da solo dopo qualche minuto di pausa.
+let nav = null;
+function sitoReferti(cfg) {
+  if (!cfg.usiUtente || !cfg.usiPassword) throw new Error("Nelle impostazioni mancano utente e password dei referti USI.");
+  nav = nav || navigatore.crea({
+    cartella: path.join(DIR, "referti"), consentiti: cfg.refertiSiti || ["usi.it"], log,
+    segreti: () => { const c = leggiConfig() || {}; return { UTENTE_USI: c.usiUtente, PASSWORD_USI: c.usiPassword }; },
+  });
+  return nav;
+}
+
 async function eseguiStrumento(nome, input, cfg, conv, testoUtente) {
   const p = posta.crea(cfg);
   switch (nome) {
+    case "referti_apri": return sitoReferti(cfg).apri(cfg.refertiIndirizzo || "https://www.usi.it/areaprivata/referti");
+    case "sito_leggi": return sitoReferti(cfg).leggi();
+    case "sito_clicca": return sitoReferti(cfg).clicca(input.numero);
+    case "sito_scrivi": return sitoReferti(cfg).scrivi(input.numero, input.testo, input.invio);
+    case "sito_scarica": return sitoReferti(cfg).scarica(input.numero);
+    case "referto_stampa":
+    case "referto_mostra": {
+      const file = nav && nav.ultimoScaricato();
+      if (!file) throw new Error("Non ho ancora scaricato nessun referto.");
+      if (nome === "referto_stampa") { await posta.stampaFile(file); return "Referto mandato alla stampante."; }
+      await posta.apriFile(file); return "Referto aperto sullo schermo.";
+    }
     case "elenco_email": return p.elenco({ ...input, quante: Math.min(input.quante || 10, 30) });
     case "leggi_email": return p.leggi(input);
     case "cerca_email": return p.cerca({ ...input, quante: Math.min(input.quante || 10, 30) });
@@ -235,6 +281,8 @@ async function salvaImpostazioni(dati) {
     apiKey: (dati.apiKey || "").trim() || vecchia.apiKey,
     modo: dati.modo === "abbonamento" ? "abbonamento" : "chiave",
     tokenAbbonamento: (dati.tokenAbbonamento || "").trim() || vecchia.tokenAbbonamento,
+    usiUtente: (dati.usiUtente || "").trim(),
+    usiPassword: dati.usiPassword || vecchia.usiPassword,
     emailFiglio: (dati.emailFiglio || "").trim(),
     nomeAssistente: (dati.nomeAssistente || "").trim(),
     tema: dati.tema || vecchia.tema || "allegra",
@@ -301,19 +349,10 @@ foreach ($p in $cartelle) {
   await posta.powershell(ps);
 }
 
-function trovaEdge() {
-  const candidati = [
-    path.join(process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)", "Microsoft\\Edge\\Application\\msedge.exe"),
-    path.join(process.env.ProgramFiles || "C:\\Program Files", "Microsoft\\Edge\\Application\\msedge.exe"),
-    path.join(process.env.LOCALAPPDATA || "", "Microsoft\\Edge\\Application\\msedge.exe"),
-  ];
-  return candidati.find((c) => fs.existsSync(c));
-}
-
 function apriFinestra(pagina = "") {
   const url = `http://127.0.0.1:${PORTA}/${pagina}`;
   if (process.platform !== "win32") return log("finestra:", url);
-  const edge = trovaEdge();
+  const edge = navigatore.trovaEdge();
   const args = [
     `--app=${url}`, `--user-data-dir=${path.join(DIR, "edge")}`,
     "--autoplay-policy=no-user-gesture-required", "--start-maximized", "--no-first-run", "--no-default-browser-check",
@@ -349,7 +388,7 @@ function avviaServer() {
       if (req.method === "GET" && IMMAGINI[url]) { res.writeHead(200, { "Content-Type": "image/webp", "Cache-Control": "max-age=86400" }); return res.end(Buffer.from(IMMAGINI[url], "base64")); }
       if (req.method === "GET" && url === "/config") {
         const c = leggiConfig() || {};
-        return json({ versione: aggiorna.VERSIONE, avvioAutomatico: c.avvioAutomatico !== false, tema: c.tema || "allegra", nomeAssistente: c.nomeAssistente || "", voce: c.voce || "auto", nome: c.nome || "", email: c.email || "", emailFiglio: c.emailFiglio || "", haPassword: !!c.password, haChiave: !!c.apiKey, modo: c.modo || "chiave", haToken: !!c.tokenAbbonamento });
+        return json({ versione: aggiorna.VERSIONE, avvioAutomatico: c.avvioAutomatico !== false, tema: c.tema || "allegra", nomeAssistente: c.nomeAssistente || "", voce: c.voce || "auto", nome: c.nome || "", email: c.email || "", emailFiglio: c.emailFiglio || "", haPassword: !!c.password, haChiave: !!c.apiKey, modo: c.modo || "chiave", haToken: !!c.tokenAbbonamento, usiUtente: c.usiUtente || "", haUsi: !!c.usiPassword });
       }
       if (req.method === "POST" && url === "/salva") return json({ esiti: await salvaImpostazioni(await corpo(req)) });
       if (req.method === "GET" && url === "/icona.png") { res.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "max-age=86400" }); return res.end(Buffer.from(ICONA, "base64")); }

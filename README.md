@@ -7,6 +7,7 @@ Un assistente vocale per chi non è pratico di computer. Si accende da solo con 
 - **stampare** email e allegati, senza finestre da confermare;
 - **rispondere** o scrivere email (solo dopo un *"sì"* detto ad alta voce);
 - avvisare se un'email sembra una **truffa**;
+- entrare da solo nell'area privata di **USI**, scaricare e **stampare i referti** (*"stampami l'ultimo referto"*);
 - chiedere aiuto al figlio via email;
 - rispondere a domande di ogni giorno (ricette, parole, curiosità…);
 - con l'abbonamento Claude, anche **cercare su internet** (meteo, notizie, orari, numeri di negozi e uffici).
@@ -64,6 +65,9 @@ la pagina ufficiale è support.claude.com/articles/15036540.
     inizia con `sk-ant-oat`: copialo nel campo **Codice dell'abbonamento**. Il tuo account resta collegato a quel PC
     (puoi scollegarlo quando vuoi dalle impostazioni del tuo account Claude).
   - *Chiave API*: incolla la chiave `sk-ant-…`.
+- **Referti USI** (facoltativo): nome utente (o codice fiscale) e password dell'area privata di usi.it.
+  L'assistente entra da solo con un Edge "nascosto" che può aprire **solo usi.it**; Claude non vede mai la password
+  (la scrive il programma). Se USI manda un codice via SMS, l'assistente lo chiede a voce.
 - **Email del figlio**: lì arrivano le richieste di aiuto.
 - **Apri da solo all'accensione**: lasciala accesa sul PC di chi lo usa, toglila se lo stai solo provando.
 
@@ -76,7 +80,8 @@ Clic su **Apri l'assistente** → Edge chiede il **microfono** → **Consenti** 
 ### 6. Stampante
 Impostazioni di Windows → **Bluetooth e dispositivi** → **Stampanti e scanner** → togli la spunta da
 *"Consenti a Windows di gestire la stampante predefinita"* → stampante giusta → **Imposta come predefinita**.
-Per stampare gli allegati PDF serve **Adobe Acrobat Reader** (gratis).
+Per stampare allegati e **referti** PDF serve **Adobe Acrobat Reader** (gratis): installalo e lascialo come programma
+predefinito per i PDF.
 
 ### 7. Prova
 - *"Ehi Aurora, ho email nuove?"*
@@ -107,7 +112,8 @@ se c'è, la scarica e si riavvia da solo, mai mentre si sta parlando. Le imposta
 | "Per questo mese ho finito il credito dell'abbonamento" | Aspetta il mese dopo, oppure passa per un po' alla **Chiave API** nelle impostazioni |
 | Non legge la posta | Rifai la password per app di Yahoo e rimettila nelle impostazioni |
 | Non sente la voce | Microfono di Windows; in Edge: lucchetto accanto all'indirizzo → Microfono → Consenti |
-| Non stampa | Stampante accesa e **predefinita** |
+| Non stampa | Stampante accesa e **predefinita**; per i PDF serve Adobe Acrobat Reader |
+| I referti USI non si aprono | Controlla utente e password USI nelle impostazioni (prova a entrare tu su usi.it); poi mandami `registro.txt` |
 | Altro | Windows + R → `%APPDATA%\AssistenteClaude` → mandare il file `registro.txt` |
 
 **Costo:** con l'abbonamento, niente in più finché si resta nel credito mensile compreso. Con la chiave API si paga

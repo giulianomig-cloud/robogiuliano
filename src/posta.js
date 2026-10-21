@@ -183,4 +183,17 @@ async function stampaTesto(contenuto) {
   await powershell(`Get-Content -LiteralPath ${psStr(file)} -Encoding UTF8 | Out-Printer`);
 }
 
-module.exports = { crea, powershell, psStr };
+// Stampa un file (PDF, foto…) sulla stampante predefinita: serve un programma che sappia stamparlo (es. Acrobat Reader).
+async function stampaFile(file) {
+  if (process.platform !== "win32") throw new Error("La stampa funziona solo su Windows.");
+  try {
+    await powershell(`Start-Process -FilePath ${psStr(file)} -Verb Print -WindowStyle Hidden`);
+  } catch {
+    throw new Error(`Non riesco a stamparlo da solo: manca un programma che sappia stampare questo tipo di file (per i PDF serve Adobe Acrobat Reader). Il file è in: ${file}`);
+  }
+}
+async function apriFile(file) {
+  if (process.platform === "win32") await powershell(`Start-Process -FilePath ${psStr(file)}`);
+}
+
+module.exports = { crea, powershell, psStr, stampaFile, apriFile };

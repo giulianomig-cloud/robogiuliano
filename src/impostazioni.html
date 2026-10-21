@@ -73,6 +73,13 @@
       <label>Chiave API di Claude <small>Da console.anthropic.com → API keys. Inizia con sk-ant-…</small></label>
       <input name="apiKey" type="password" autocomplete="off" placeholder="sk-ant-…">
     </div>
+    <label>Referti USI <small>Facoltativo. Gli stessi dati con cui si entra nell'area privata di usi.it: l'assistente entra da solo, scarica e stampa i referti. Restano solo su questo computer.</small></label>
+    <div class="riquadro">
+      <label>Nome utente (o codice fiscale)</label>
+      <input name="usiUtente" autocomplete="off" translate="no" class="notranslate">
+      <label>Password di USI</label>
+      <input name="usiPassword" type="password" autocomplete="off">
+    </div>
     <label>Email del figlio <small>Dove arrivano le richieste di aiuto.</small></label>
     <input name="emailFiglio" type="email" autocomplete="off" placeholder="tuo.indirizzo@gmail.com">
     <label style="display:flex;gap:10px;align-items:center;font-weight:600;margin-top:18px"><input name="avvioAutomatico" type="checkbox" checked style="width:22px;height:22px">Apri da solo all'accensione di questo computer</label>
@@ -90,6 +97,8 @@
     f.nome.value = c.nome; f.tema.value = c.tema || "allegra"; f.voce.value = c.voce || "auto"; f.nomeAssistente.value = c.nomeAssistente; f.avvioAutomatico.checked = c.avvioAutomatico; f.email.value = c.email; f.emailFiglio.value = c.emailFiglio;
     if (c.haPassword) f.password.placeholder = "già salvata (lascia vuoto per non cambiarla)";
     if (c.haChiave) f.apiKey.placeholder = "già salvata (lascia vuoto per non cambiarla)";
+    f.usiUtente.value = c.usiUtente || "";
+    if (c.haUsi) f.usiPassword.placeholder = "già salvata (lascia vuoto per non cambiarla)";
     if (c.haToken) f.tokenAbbonamento.placeholder = "già salvato (lascia vuoto per non cambiarlo)";
     f.modo.value = c.modo || "chiave";
     mostraModo();
