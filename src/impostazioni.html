@@ -6,60 +6,111 @@
 <title>Impostazioni assistente</title>
 <link rel="icon" href="/icona.png">
 <style>
-  :root { --sfondo: #f6f1e9; --carta: #fff; --testo: #1d1a16; --tenue: #6b6258; --oro: #d9a441; --verde: #2f9e5b; --rosso: #c63b2f; }
+  :root { --sfondo: #f3eee6; --carta: #fff; --testo: #1d1a16; --tenue: #6b6258; --linea: #e6ddd0; --oro: #d9a441; --oro2: #f0c869; --verde: #2f9e5b; --rosso: #c63b2f; --grigio: #b9b0a4; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--sfondo); color: var(--testo); font-family: "Segoe UI", Arial, sans-serif; padding: 24px 16px; }
-  main { max-width: 640px; margin: 0 auto; }
-  h1 { font-size: 30px; margin: 0 0 4px; }
-  p.sotto { color: var(--tenue); margin: 0 0 20px; }
-  form { background: var(--carta); border-radius: 18px; padding: 20px; box-shadow: 0 6px 24px rgba(0,0,0,.08); }
+  body { margin: 0; background: var(--sfondo); color: var(--testo); font-family: "Segoe UI", Arial, sans-serif; }
+  a { color: var(--testo); }
+  small { display: block; color: var(--tenue); font-weight: 400; margin-top: 2px; font-size: 14px; }
   label { display: block; font-weight: 600; margin: 16px 0 6px; }
-  label:first-child { margin-top: 0; }
-  small { display: block; color: var(--tenue); font-weight: 400; margin-top: 2px; }
-  input { width: 100%; font-size: 17px; padding: 11px 12px; border: 1px solid #d8d0c4; border-radius: 10px; background: #fffdf9; }
-  button { margin-top: 22px; width: 100%; font-size: 19px; font-weight: 700; padding: 14px; border: 0; border-radius: 12px; background: var(--oro); color: #1d1a16; cursor: pointer; }
+  input, select { width: 100%; font-size: 17px; padding: 11px 12px; border: 1px solid #d8d0c4; border-radius: 10px; background: #fffdf9; font-family: inherit; }
+  input:focus, select:focus { outline: 2px solid var(--oro); border-color: transparent; }
+  button { font-family: inherit; cursor: pointer; }
   button:disabled { opacity: .6; cursor: wait; }
-  #esiti { margin-top: 18px; }
+  button.secondario { margin: 4px 6px 0 0; font-size: 16px; font-weight: 600; padding: 10px 16px; border: 0; border-radius: 10px; background: #1d1a16; color: #fff; }
   .esito { padding: 10px 14px; border-radius: 10px; margin-top: 8px; }
   .ok { background: #e3f4ea; color: #1d5e37; }
   .no { background: #fbe5e2; color: #7d241b; }
-  a { color: var(--testo); }
-  .scelta { display: grid; gap: 8px; }
-  .opzione { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin: 0; padding: 12px; border: 1px solid #d8d0c4; border-radius: 12px; cursor: pointer; }
-  .opzione input { width: 20px; height: 20px; margin-top: 2px; flex: none; }
-  .riquadro { margin-top: 12px; padding: 4px 14px 14px; background: #faf6ef; border-radius: 12px; }
+
+  /* Testata con lo stato di ogni pezzo */
+  header { background: #1d1a16; color: #fff; padding: 22px 28px 20px; }
+  .titolo { display: flex; align-items: center; gap: 14px; max-width: 1100px; margin: 0 auto; }
+  .titolo h1 { margin: 0; font-size: 30px; }
+  .titolo .ver { margin-left: auto; font-size: 14px; opacity: .7; text-align: right; }
+  #luci { display: flex; flex-wrap: wrap; gap: 8px; max-width: 1100px; margin: 16px auto 0; }
+  .luce { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px 7px 10px; border-radius: 999px; background: rgba(255,255,255,.09); font-size: 15px; font-weight: 600; cursor: pointer; border: 0; color: #fff; }
+  .luce i { width: 11px; height: 11px; border-radius: 50%; background: var(--grigio); box-shadow: 0 0 0 3px rgba(255,255,255,.08); }
+  .luce.verde i { background: #4cd486; box-shadow: 0 0 10px #4cd48699; }
+  .luce.rossa i { background: #ff6b5e; box-shadow: 0 0 10px #ff6b5e99; }
+  .luce.spenta { opacity: .65; }
+
+  /* Sezioni */
+  .sezione { background: var(--carta); border-radius: 18px; padding: 22px 26px 24px; box-shadow: 0 6px 24px rgba(0,0,0,.06); }
+  .sezione > h2 { display: flex; align-items: center; gap: 12px; margin: 0 0 4px; font-size: 22px; }
+  .sezione > h2 .em { width: 42px; height: 42px; border-radius: 12px; background: #f6efe2; display: grid; place-items: center; font-size: 23px; }
+  .sezione > h2 .stato { margin-left: auto; font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 999px; background: #eee8de; color: var(--tenue); }
+  .sezione > h2 .stato.verde { background: #e3f4ea; color: #1d5e37; }
+  .sezione > h2 .stato.rossa { background: #fbe5e2; color: #7d241b; }
+  .sezione > p.intro { color: var(--tenue); margin: 2px 0 6px 54px; font-size: 15px; }
+  .riquadro { margin-top: 12px; padding: 4px 16px 16px; background: #faf6ef; border-radius: 12px; }
   .riquadro p { margin: 12px 0 8px; }
-  .spunta { display: flex; gap: 10px; align-items: center; font-weight: 400; margin: 10px 0 0; }
-  .spunta input { width: 20px; height: 20px; flex: none; }
-  button.secondario { margin-top: 4px; width: auto; font-size: 16px; padding: 10px 16px; background: #1d1a16; color: #fff; }
+  .spunta { display: flex; gap: 12px; align-items: center; font-weight: 400; margin: 12px 0 0; }
+  /* interruttori al posto delle caselle */
+  .spunta input { appearance: none; width: 46px; height: 26px; flex: none; border-radius: 999px; background: #d6cdc0; border: 0; padding: 0; position: relative; cursor: pointer; transition: background .2s; }
+  .spunta input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: left .2s; }
+  .spunta input:checked { background: var(--verde); }
+  .spunta input:checked::after { left: 23px; }
+  .scelta { display: grid; gap: 10px; }
+  .opzione { display: flex; gap: 12px; align-items: flex-start; font-weight: 400; margin: 0; padding: 14px; border: 2px solid var(--linea); border-radius: 14px; cursor: pointer; }
+  .opzione:has(input:checked) { border-color: var(--oro); background: #fffaf0; }
+  .opzione input { width: 20px; height: 20px; margin-top: 2px; flex: none; accent-color: var(--oro); }
+  /* Personaggi come tessere con la figura */
+  .personaggi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .pers { margin: 0; position: relative; border: 2px solid var(--linea); border-radius: 16px; padding: 12px 10px 12px; text-align: center; cursor: pointer; font-weight: 700; }
+  .pers input { position: absolute; opacity: 0; pointer-events: none; }
+  .pers .fig { height: 92px; display: grid; place-items: center; margin-bottom: 6px; border-radius: 12px; overflow: hidden; }
+  .pers .fig img { height: 100%; width: 100%; object-fit: contain; }
+  .pers.aurora .fig { background: #140b33; }
+  .pers.robo .fig { background: radial-gradient(circle, #1b4a8a, #0a1a3a); }
+  .pers.yay .fig { background: radial-gradient(circle, #6b2a7a, #241034); }
+  .goccia { width: 64px; height: 64px; border-radius: 42% 58% 60% 40% / 45% 45% 55% 55%; background: linear-gradient(135deg, #ffd36e, #ff7eb3 45%, #8ec5ff); position: relative; }
+  .goccia::before, .goccia::after { content: ""; position: absolute; top: 24px; width: 8px; height: 10px; border-radius: 50%; background: #1a1033; }
+  .goccia::before { left: 20px; } .goccia::after { right: 20px; }
+  .pers small { margin-top: 2px; }
+  .pers:has(input:checked) { border-color: var(--oro); box-shadow: 0 0 0 3px #f5dfae; }
+  .pers:has(input:checked)::after { content: "✓"; position: absolute; top: 8px; right: 10px; width: 24px; height: 24px; border-radius: 50%; background: var(--oro); color: #1d1a16; font-size: 14px; display: grid; place-items: center; }
+  .due { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 16px; }
+
+  /* Barra in basso con Salva sempre visibile */
+  .barra { position: sticky; bottom: 0; background: linear-gradient(transparent, var(--sfondo) 35%); padding: 26px 0 18px; z-index: 3; }
+  #salva { width: 100%; font-size: 19px; font-weight: 700; padding: 15px; border: 0; border-radius: 14px; background: linear-gradient(180deg, var(--oro2), var(--oro)); color: #1d1a16; box-shadow: 0 6px 18px rgba(217,164,65,.35); }
+
+  /* ---------- Schede: menu a sinistra, una sezione per volta ---------- */
+  .corpo { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; max-width: 1100px; margin: 24px auto 0; padding: 0 28px; align-items: start; }
+  nav { position: sticky; top: 16px; display: grid; gap: 6px; background: var(--carta); border-radius: 18px; padding: 10px; box-shadow: 0 6px 24px rgba(0,0,0,.06); }
+  nav a { display: flex; align-items: center; gap: 10px; padding: 12px 12px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 16px; }
+  nav a .em { font-size: 20px; width: 26px; text-align: center; }
+  nav a i { margin-left: auto; width: 10px; height: 10px; border-radius: 50%; background: var(--grigio); }
+  nav a i.verde { background: var(--verde); } nav a i.rossa { background: var(--rosso); }
+  nav a.attiva { background: #1d1a16; color: #fff; }
+  .sezione { display: none; }
+  .sezione.attiva { display: block; animation: entra .25s ease; }
+  @keyframes entra { from { opacity: 0; transform: translateY(6px); } }
+
 </style>
 </head>
 <body>
-<main>
-  <h1>⚙️ Impostazioni</h1>
-  <p class="sotto">Da compilare una volta sola. Poi l'assistente si apre da solo all'accensione.</p>
-  <form id="modulo">
-    <label>Nome della mamma <small>Lo usa per firmare le email e per salutarla.</small></label>
-    <input name="nome" autocomplete="off" placeholder="Es. Maria Rossi">
-    <label>Nome dell'assistente <small>La parola per chiamarlo: "Ehi …". Lascia vuoto per usare quello dello stile (Aurora, RoboGiuliano o RoboYaymaris).</small></label>
-    <input name="nomeAssistente" autocomplete="off" placeholder="Aurora / RoboGiuliano / RoboYaymaris">
-    <label>Stile</label>
-    <select name="tema" style="width:100%;font-size:17px;padding:11px 12px;border:1px solid #d8d0c4;border-radius:10px;background:#fffdf9">
-      <option value="allegra">Aurora (faccina colorata)</option>
-      <option value="robo">RoboGiuliano (avatar robot)</option>
-      <option value="yaymaris">RoboYaymaris (avatar robot)</option>
-    </select>
-    <label>Voce</label>
-    <select name="voce" style="width:100%;font-size:17px;padding:11px 12px;border:1px solid #d8d0c4;border-radius:10px;background:#fffdf9">
-      <option value="auto">Automatica (quella del personaggio)</option>
-      <option value="femminile">Femminile</option>
-      <option value="maschile">Maschile</option>
-    </select>
-    <label>Email Yahoo</label>
-    <input name="email" type="email" autocomplete="off" placeholder="nome@yahoo.it" required>
-    <label>Password per app di Yahoo <small>Quella da 16 lettere (Yahoo → Sicurezza account → Genera password per app). Non la password normale.</small></label>
-    <input name="password" type="password" autocomplete="off" placeholder="xxxx xxxx xxxx xxxx">
-    <label>Come si collega a Claude</label>
+<header>
+  <div class="titolo"><h1>⚙️ Impostazioni</h1><div class="ver" id="verAlto" translate="no"></div></div>
+  <div id="luci"></div>
+</header>
+<form id="modulo">
+<div class="corpo">
+  <nav><a href="#s-mamma" data-vai="mamma"><span class="em">👤</span>Mamma e personaggio<i data-luce="mamma"></i></a><a href="#s-posta" data-vai="posta"><span class="em">📧</span>Posta Yahoo<i data-luce="posta"></i></a><a href="#s-claude" data-vai="claude"><span class="em">🤖</span>Claude<i data-luce="claude"></i></a><a href="#s-usi" data-vai="usi"><span class="em">🏥</span>Referti USI<i data-luce="usi"></i></a><a href="#s-figlio" data-vai="figlio"><span class="em">🆘</span>Aiuto del figlio<i data-luce="figlio"></i></a><a href="#s-programma" data-vai="programma"><span class="em">⚙️</span>Programma<i data-luce="programma"></i></a></nav>
+  <div>
+    <div class="sezioni"><section class="sezione" id="s-mamma"><h2><span class="em">👤</span>Mamma e personaggio<span class="stato" data-stato="mamma"></span></h2><p class="intro">Come si chiama lei e chi le risponde.</p>
+  <div class="due"><div><label>Nome della mamma <small>Per firmare le email e salutarla.</small></label><input name="nome" autocomplete="off" placeholder="Es. Maria Rossi"></div>
+  <div><label>Nome dell'assistente <small>"Ehi …". Vuoto = quello del personaggio.</small></label><input name="nomeAssistente" autocomplete="off" placeholder="Aurora / RoboGiuliano / RoboYaymaris"></div></div>
+  <label>Personaggio</label>
+  <div class="personaggi">
+    <label class="pers aurora"><input type="radio" name="tema" value="allegra"><div class="fig"><div class="goccia"></div></div>Aurora<small>faccina colorata</small></label>
+    <label class="pers robo"><input type="radio" name="tema" value="robo"><div class="fig"><img src="/robo-riposo.webp" alt=""></div>RoboGiuliano<small>avatar robot</small></label>
+    <label class="pers yay"><input type="radio" name="tema" value="yaymaris"><div class="fig"><img src="/yaymaris-riposo.webp" alt=""></div>RoboYaymaris<small>avatar robot</small></label>
+  </div>
+  <label>Voce</label>
+  <select name="voce"><option value="auto">Automatica (quella del personaggio)</option><option value="femminile">Femminile</option><option value="maschile">Maschile</option></select></section><section class="sezione" id="s-posta"><h2><span class="em">📧</span>Posta Yahoo<span class="stato" data-stato="posta"></span></h2><p class="intro">La casella che l'assistente legge, stampa e da cui risponde.</p>
+  <div class="due"><div><label>Email Yahoo</label><input name="email" type="email" autocomplete="off" placeholder="nome@yahoo.it" required></div>
+  <div><label>Password per app <small>Quella da 16 lettere, non la password normale.</small></label><input name="password" type="password" autocomplete="off" placeholder="xxxx xxxx xxxx xxxx"></div></div>
+  <small style="margin-top:10px">Yahoo → Sicurezza account → Genera password per app.</small></section><section class="sezione" id="s-claude"><h2><span class="em">🤖</span>Collegamento a Claude<span class="stato" data-stato="claude"></span></h2><p class="intro">Il “cervello” dell'assistente.</p>
     <div class="scelta">
       <label class="opzione"><input type="radio" name="modo" value="abbonamento"> <span><b>Il mio abbonamento Claude</b> (Pro o Max)<small>Nessun costo in più: usa il credito mensile compreso nell'abbonamento. Sa anche cercare su internet (meteo, notizie, orari).</small></span></label>
       <label class="opzione"><input type="radio" name="modo" value="chiave" checked> <span><b>Chiave API</b> (ricarica a consumo)<small>Si paga solo quello che si usa, da console.anthropic.com.</small></span></label>
@@ -75,41 +126,34 @@
     <div id="perChiave" class="riquadro">
       <label>Chiave API di Claude <small>Da console.anthropic.com → API keys. Inizia con sk-ant-…</small></label>
       <input name="apiKey" type="password" autocomplete="off" placeholder="sk-ant-…">
-    </div>
-    <label>Referti USI <small>Facoltativo. Gli stessi dati con cui si entra nell'area privata di usi.it: l'assistente entra da solo, scarica e stampa i referti. Restano solo su questo computer.</small></label>
-    <div class="riquadro">
-      <label>Nome utente (o codice fiscale)</label>
-      <input name="usiUtente" autocomplete="off" translate="no" class="notranslate">
-      <label>Password di USI</label>
-      <input name="usiPassword" type="password" autocomplete="off">
-    </div>
-    <label>Email del figlio <small>Dove arrivano le richieste di aiuto.</small></label>
+    </div></section><section class="sezione" id="s-usi"><h2><span class="em">🏥</span>Referti USI<span class="stato" data-stato="usi"></span></h2><p class="intro">Facoltativo. L'assistente entra da solo nell'area privata di usi.it. I dati restano su questo computer.</p>
+  <div class="due"><div><label>Nome utente (o codice fiscale)</label><input name="usiUtente" autocomplete="off" translate="no" class="notranslate"></div>
+  <div><label>Password di USI</label><input name="usiPassword" type="password" autocomplete="off"></div></div></section><section class="sezione" id="s-figlio"><h2><span class="em">🆘</span>Aiuto da tuo figlio<span class="stato" data-stato="figlio"></span></h2><p class="intro">Richieste di aiuto, registro per email e assistenza da remoto.</p>
+    <label>Email del figlio <small>Dove arrivano le richieste di aiuto e il registro.</small></label>
     <input name="emailFiglio" type="email" autocomplete="off" placeholder="tuo.indirizzo@gmail.com">
-    <label>Assistenza a distanza <small>Per vedere il registro senza che la mamma faccia niente: scrivi alla sua email con oggetto <b>registro</b> e ti arriva in risposta (solo al tuo indirizzo qui sopra).</small></label>
     <div class="riquadro">
+      <p><b>Registro per email</b><small>Scrivi alla sua email con oggetto <b>registro</b>: ti arriva in risposta, solo al tuo indirizzo.</small></p>
       <label class="spunta"><input name="registroSuRichiesta" type="checkbox" checked> Mandami il registro quando lo chiedo per email</label>
-      <label class="spunta"><input name="avvisaErrori" type="checkbox" checked> Mandamelo da solo se ci sono errori (al massimo una volta al giorno)</label>
-      <label class="spunta"><input name="registroConConversazioni" type="checkbox"> Includi anche le conversazioni (di solito non serve)</label>
+      <label class="spunta"><input name="avvisaErrori" type="checkbox" checked> Mandamelo da solo se ci sono errori (max una volta al giorno)</label>
+      <label class="spunta"><input name="registroConConversazioni" type="checkbox"> Includi anche le conversazioni</label>
     </div>
-    <label>Assistenza da remoto <small>Claude Code in "Remote Control": dall'app Claude sul tuo telefono lavori su questo PC (stampante, Wi-Fi, lentezza…). Parte con un'email con oggetto <b>assistenza</b>, quando la mamma dice "chiama l'assistenza" o con il pulsante qui sotto; si chiude da sola dopo 2 ore. Serve l'abbonamento Claude.</small></label>
     <div class="riquadro">
+      <p><b>Assistenza da remoto</b><small>Dall'app Claude sul telefono lavori su questo PC. Parte con un'email con oggetto <b>assistenza</b>, quando la mamma dice "chiama l'assistenza" o da qui; si chiude da sola dopo 2 ore.</small></p>
       <label class="spunta"><input name="assistenzaRemota" type="checkbox"> Attiva l'assistenza da remoto</label>
-      <p><b>Una volta sola:</b> "Prepara" apre Claude Code: entra con il tuo account e conferma che la cartella è fidata, poi scrivi /exit.</p>
-      <button type="button" class="secondario" data-remota="prepara">Prepara</button>
-      <button type="button" class="secondario" data-remota="avvia">Avvia ora</button>
-      <button type="button" class="secondario" data-remota="ferma">Ferma</button>
+      <p><small><b>Una volta sola:</b> "Prepara" apre Claude Code: entra con il tuo account, conferma la cartella fidata, poi /exit.</small></p>
+      <button type="button" class="secondario" data-remota="prepara">Prepara</button><button type="button" class="secondario" data-remota="avvia">Avvia ora</button><button type="button" class="secondario" data-remota="ferma">Ferma</button>
       <div id="esitoRemota"></div>
-    </div>
-    <label style="display:flex;gap:10px;align-items:center;font-weight:600;margin-top:18px"><input name="avvioAutomatico" type="checkbox" checked style="width:22px;height:22px">Apri da solo all'accensione di questo computer</label>
-    <small>Toglila se lo stai solo provando sul tuo computer.</small>
-    <button id="salva">Salva e prova</button>
-    <div id="esiti"></div>
-  </form>
-  <p class="sotto" style="margin-top:16px"><a href="/">← Torna all'assistente</a></p>
-  <p class="sotto" id="versione" translate="no"></p>
-  <button type="button" class="secondario" id="controlla">Controlla aggiornamenti</button>
-  <div id="esitoAggiornamento"></div>
-</main>
+    </div></section><section class="sezione" id="s-programma"><h2><span class="em">⚙️</span>Programma<span class="stato" data-stato="programma"></span></h2><p class="intro">Avvio e aggiornamenti.</p>
+    <label class="spunta"><input name="avvioAutomatico" type="checkbox" checked> Apri da solo all'accensione di questo computer</label>
+    <small style="margin-left:58px">Toglila se lo stai solo provando sul tuo computer.</small>
+    <p id="versione" translate="no" style="margin:18px 0 6px;color:var(--tenue)"></p>
+    <button type="button" class="secondario" id="controlla">Controlla aggiornamenti</button>
+    <div id="esitoAggiornamento"></div>
+    <p style="margin-top:18px"><a href="/">← Torna all'assistente</a></p></section></div>
+    <div class="barra"><button id="salva">Salva e prova</button><div id="esiti"></div></div>
+  </div>
+</div>
+</form>
 <script>
   const f = document.getElementById("modulo");
   fetch("/config").then((r) => r.json()).then((c) => {
@@ -197,7 +241,47 @@
       out.innerHTML = '<div class="esito no">✕ Errore: ' + err.message + "</div>";
     }
     b.disabled = false; b.textContent = "Salva e prova";
+    aggiornaLuci();
   };
+</script>
+
+
+<script>
+  // Luci di stato: verde = compilato, rosso = manca qualcosa che serve, grigio = facoltativo e non usato.
+  function statoSezioni(c) {
+    const claudeOk = c.modo === "abbonamento" ? c.haToken : c.haChiave;
+    return {
+      mamma: [!!c.nome, c.nome ? "Pronto" : "Manca il nome", "👤 " + ({ allegra: "Aurora", robo: "RoboGiuliano", yaymaris: "RoboYaymaris" }[c.tema] || "Aurora")],
+      posta: [!!(c.email && c.haPassword), c.email && c.haPassword ? "Collegata" : "Da collegare", "📧 Posta Yahoo"],
+      claude: [!!claudeOk, claudeOk ? (c.modo === "abbonamento" ? "Abbonamento" : "Chiave API") : "Da collegare", "🤖 Claude"],
+      usi: [c.usiUtente && c.haUsi ? true : null, c.usiUtente && c.haUsi ? "Impostati" : "Non usati", "🏥 Referti USI"],
+      figlio: [c.emailFiglio ? true : false, c.emailFiglio ? (c.assistenzaRemota ? "Email + remoto" : "Email impostata") : "Manca l'email", "🆘 Aiuto del figlio"],
+      programma: [true, c.versione, "⚙️ v" + c.versione],
+    };
+  }
+  // Si ricalcolano anche dopo "Salva e prova".
+  async function aggiornaLuci() {
+    const c = await (await fetch("/config")).json();
+    document.getElementById("verAlto").textContent = "Versione " + c.versione;
+    const s = statoSezioni(c), luci = document.getElementById("luci");
+    luci.innerHTML = "";
+    for (const [id, [ok, testo, nome]] of Object.entries(s)) {
+      const col = ok === true ? "verde" : ok === false ? "rossa" : "";
+      const b = document.createElement("button"); b.type = "button"; b.className = "luce " + (col || "spenta"); b.innerHTML = "<i></i>" + nome; b.onclick = () => vai(id); luci.appendChild(b);
+      const st = document.querySelector(`[data-stato="${id}"]`); st.textContent = testo; st.className = "stato " + col;
+      const l = document.querySelector(`[data-luce="${id}"]`); if (l) l.className = col;
+    }
+  }
+  aggiornaLuci();
+  // Un campo obbligatorio vuoto in un'altra scheda: si va a quella scheda, così si vede cosa manca.
+  f.addEventListener("invalid", (e) => vai(e.target.closest(".sezione").id.slice(2)), true);
+  function vai(id) {
+    document.querySelectorAll(".sezione, nav a").forEach((e) => e.classList.remove("attiva"));
+    document.getElementById("s-" + id).classList.add("attiva");
+    document.querySelector(`nav a[data-vai="${id}"]`).classList.add("attiva");
+  }
+  document.querySelectorAll("nav a").forEach((a) => (a.onclick = (e) => { e.preventDefault(); vai(a.dataset.vai); }));
+  vai("mamma");
 </script>
 </body>
 </html>

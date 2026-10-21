@@ -70,6 +70,10 @@
   `ATTIVITA` in `assistente.js`, segnata in `eseguiStrumento`), la pagina chiede `GET /attivita` ogni 0,5 s e mostra
   "Sto controllando la posta" + pastiglia "📧 Posta di Yahoo". In abbonamento `claude -p` usa `--output-format stream-json
   --verbose` (stream-json senza `--verbose` dà errore) per vedere anche WebSearch/WebFetch ("Sto cercando su internet").
+- Impostazioni (v1.5, scelta "A · Schede" fra A / B riquadri in fila): barra scura in alto con lucine di stato (verde
+  compilato, rosso manca, grigio facoltativo non usato; dicono "compilato", NON "funziona"), menu a sinistra con 6 schede
+  (Mamma e personaggio con tessere-figura, Posta Yahoo, Claude, Referti USI, Aiuto del figlio, Programma), interruttori,
+  "Salva e prova" sempre visibile. Campo obbligatorio vuoto in un'altra scheda → si apre quella scheda.
 
 ## Versioni e aggiornamenti
 - La versione è `version` in `package.json` (finisce nell'exe come `__VERSIONE__`).

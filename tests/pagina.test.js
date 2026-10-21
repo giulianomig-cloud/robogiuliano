@@ -31,3 +31,14 @@ test("ogni foto dei personaggi esiste ed è servita dal programma", () => {
     assert.ok(pagina.includes(`file: "${chi}"`), chi);
   }
 });
+
+test("le impostazioni hanno codice valido e tutti i campi che il programma salva", () => {
+  const imp = fs.readFileSync(path.join(src, "impostazioni.html"), "utf8");
+  for (const m of imp.matchAll(/<script>([\s\S]*?)<\/script>/g)) assert.doesNotThrow(() => new Function(m[1]));
+  for (const campo of ["nome", "nomeAssistente", "tema", "voce", "email", "password", "modo", "tokenAbbonamento", "apiKey", "usiUtente", "usiPassword", "emailFiglio",
+    "registroSuRichiesta", "avvisaErrori", "registroConConversazioni", "assistenzaRemota", "avvioAutomatico"]) {
+    assert.ok(imp.includes(`name="${campo}"`), campo);
+  }
+  // ogni voce del menu a sinistra apre una scheda che esiste
+  for (const m of imp.matchAll(/data-vai="(\w+)"/g)) assert.ok(imp.includes(`id="s-${m[1]}"`), m[1]);
+});
