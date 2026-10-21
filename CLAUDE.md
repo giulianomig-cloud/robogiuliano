@@ -57,6 +57,13 @@
   salvo `registroConConversazioni`) + `diagnosi()`. Errori nelle ultime 24 ore → registro mandato da solo, max 1 al giorno.
   Il registro ruota oltre 5 MB (`registro-vecchio.txt`).
 
+- Assistenza da remoto (`src/remota.js`, impostazione `assistenzaRemota`, spenta di partenza): avvia
+  `claude remote-control --name "PC della mamma" --spawn session` in una finestra ridotta (cartella
+  `%APPDATA%\AssistenteClaude\assistenza-remota`), chiusa dopo 2 ore o con "Ferma" (Stop-Process dei claude.exe con
+  "remote-control"). Parte con email "assistenza" dal figlio, con lo strumento `avvia_assistenza_remota` (la madre dice
+  "chiama l'assistenza") o dal pulsante. Prima volta: "Prepara" apre `claude` per il login completo + fiducia nella cartella
+  (Remote Control vuole il login completo, non basta il token di setup-token). NON provata: serve Windows + account vero.
+
 ## Versioni e aggiornamenti
 - La versione è `version` in `package.json` (finisce nell'exe come `__VERSIONE__`).
 - Push su `main` → GitHub Actions (`.github/workflows/rilascio.yml`, Windows): `npm test`, costruzione, prova

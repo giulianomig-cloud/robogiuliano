@@ -117,6 +117,17 @@ Per non aspettare: impostazioni → in fondo **Controlla aggiornamenti** (lì c'
 - Se ci sono errori, il registro ti arriva da solo (al massimo una volta al giorno).
 - Le conversazioni della mamma **non** ci sono (si possono includere con una spunta nelle impostazioni).
 
+## Assistenza da remoto (lavorare sul PC della mamma dal tuo telefono)
+Facoltativa, **spenta** di partenza (impostazioni → *Assistenza da remoto* → *Attiva*). Serve l'abbonamento Claude.
+1. **Una volta sola**, sul PC della mamma (di persona o con Assistenza rapida): impostazioni → **Prepara** → nella finestra
+   entra con il tuo account Claude, conferma che la cartella è fidata, poi scrivi `/exit`.
+2. Quando serve: mandi un'email alla casella della mamma con oggetto **`assistenza`** (oppure lei dice *"chiama
+   l'assistenza"*, oppure **Avvia ora** nelle impostazioni). Ti arriva un'email di conferma.
+3. Nell'**app Claude** (sezione Code) o su claude.ai/code trovi la sessione **"PC della mamma"**: lì chiedi a Claude di
+   sistemare il problema; le azioni importanti le approvi tu dal telefono. Claude lavora con i comandi di Windows,
+   non vede lo schermo (per quello resta Assistenza rapida).
+4. Si chiude da sola dopo 2 ore (o con **Ferma**). Per toglierla del tutto: togli la spunta *Attiva* e **Salva e prova**.
+
 ## Se qualcosa non va
 | Problema | Soluzione |
 |---|---|

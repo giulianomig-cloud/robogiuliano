@@ -91,6 +91,15 @@
       <label class="spunta"><input name="avvisaErrori" type="checkbox" checked> Mandamelo da solo se ci sono errori (al massimo una volta al giorno)</label>
       <label class="spunta"><input name="registroConConversazioni" type="checkbox"> Includi anche le conversazioni (di solito non serve)</label>
     </div>
+    <label>Assistenza da remoto <small>Claude Code in "Remote Control": dall'app Claude sul tuo telefono lavori su questo PC (stampante, Wi-Fi, lentezza…). Parte con un'email con oggetto <b>assistenza</b>, quando la mamma dice "chiama l'assistenza" o con il pulsante qui sotto; si chiude da sola dopo 2 ore. Serve l'abbonamento Claude.</small></label>
+    <div class="riquadro">
+      <label class="spunta"><input name="assistenzaRemota" type="checkbox"> Attiva l'assistenza da remoto</label>
+      <p><b>Una volta sola:</b> "Prepara" apre Claude Code: entra con il tuo account e conferma che la cartella è fidata, poi scrivi /exit.</p>
+      <button type="button" class="secondario" data-remota="prepara">Prepara</button>
+      <button type="button" class="secondario" data-remota="avvia">Avvia ora</button>
+      <button type="button" class="secondario" data-remota="ferma">Ferma</button>
+      <div id="esitoRemota"></div>
+    </div>
     <label style="display:flex;gap:10px;align-items:center;font-weight:600;margin-top:18px"><input name="avvioAutomatico" type="checkbox" checked style="width:22px;height:22px">Apri da solo all'accensione di questo computer</label>
     <small>Toglila se lo stai solo provando sul tuo computer.</small>
     <button id="salva">Salva e prova</button>
@@ -109,6 +118,7 @@
     if (c.haPassword) f.password.placeholder = "già salvata (lascia vuoto per non cambiarla)";
     if (c.haChiave) f.apiKey.placeholder = "già salvata (lascia vuoto per non cambiarla)";
     f.usiUtente.value = c.usiUtente || "";
+    f.assistenzaRemota.checked = c.assistenzaRemota;
     f.registroSuRichiesta.checked = c.registroSuRichiesta; f.avvisaErrori.checked = c.avvisaErrori; f.registroConConversazioni.checked = c.registroConConversazioni;
     if (c.haUsi) f.usiPassword.placeholder = "già salvata (lascia vuoto per non cambiarla)";
     if (c.haToken) f.tokenAbbonamento.placeholder = "già salvato (lascia vuoto per non cambiarlo)";
@@ -152,6 +162,15 @@
       }, 5000);
     }
   };
+  // Assistenza da remoto: prepara / avvia / ferma (la spunta "Attiva" va salvata con Salva e prova).
+  for (const b of document.querySelectorAll("[data-remota]")) {
+    b.onclick = async () => {
+      const r = await (await fetch("/remota/" + b.dataset.remota, { method: "POST" })).json();
+      const out = document.getElementById("esitoRemota");
+      out.innerHTML = ""; const d = document.createElement("div");
+      d.className = "esito " + (r.ok ? "ok" : "no"); d.textContent = (r.ok ? "✓ " : "✕ ") + r.testo; out.appendChild(d);
+    };
+  }
   document.getElementById("installa").onclick = () => azione("installa", "/installa-claude", "Installo… (un paio di minuti)");
   document.getElementById("collega").onclick = () => azione("collega", "/collega-claude", "Apro la finestra…");
   f.onsubmit = async (e) => {

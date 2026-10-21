@@ -60,3 +60,24 @@ test("senza email del figlio non fa niente", async () => {
   await assistenza.crea({ leggiConfig: () => ({ ...cfg, emailFiglio: "" }), posta, log() {}, fileLog: registro(), diagnosi: () => "" }).controlla();
   assert.strictEqual(mandate.length, 0);
 });
+
+test("email \"assistenza\": avvia l'assistenza da remoto e lo dice al figlio", async () => {
+  const mandate = [], avviate = [];
+  const posta = { crea: () => ({
+    prendiRichieste: async ({ parola }) => (parola === "assistenza" ? 1 : 0),
+    invia: async (m) => { mandate.push(m); },
+  }) };
+  const remota = { avvia: (c) => { avviate.push(c); return "Assistenza da remoto avviata"; } };
+  await assistenza.crea({ leggiConfig: () => ({ ...cfg, avvisaErrori: false, assistenzaRemota: true }), posta, remota, log() {}, fileLog: registro(), diagnosi: () => "" }).controlla();
+  assert.strictEqual(avviate.length, 1);
+  assert.strictEqual(mandate[0].a, "figlio@example.com");
+  assert.match(mandate[0].testo, /avviata/);
+});
+
+test("assistenza da remoto disattivata: non parte e il figlio lo sa", async () => {
+  const mandate = [];
+  const posta = { crea: () => ({ prendiRichieste: async ({ parola }) => (parola === "assistenza" ? 1 : 0), invia: async (m) => { mandate.push(m); } }) };
+  const remota = require("../src/remota").crea({ cartella: fs.mkdtempSync(path.join(os.tmpdir(), "rem-")), trovaClaude: () => "claude", log() {} });
+  await assistenza.crea({ leggiConfig: () => ({ ...cfg, avvisaErrori: false, assistenzaRemota: false }), posta, remota, log() {}, fileLog: registro(), diagnosi: () => "" }).controlla();
+  assert.match(mandate[0].testo, /disattivata/);
+});

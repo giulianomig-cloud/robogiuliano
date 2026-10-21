@@ -50,6 +50,7 @@ const MAX_GIRI = 8;
 const SEGRETO = crypto.randomBytes(16).toString("hex");
 
 fs.mkdirSync(DIR, { recursive: true });
+const remota = require("./remota").crea({ cartella: DIR, trovaClaude: (cfg) => abbonamento.trovaClaude(cfg), log: (...c) => log(...c) });
 function log(...cose) {
   const riga = `[${new Date().toISOString()}] ${cose.map((c) => (c instanceof Error ? c.stack : String(c))).join(" ")}\n`;
   try {
@@ -105,6 +106,8 @@ const STRUMENTI = [
       nome: { type: "string", description: "Nome chiaro del file, senza estensione, es. \"Ricetta 21-10-2026\"." }, cartella }, required: ["id", "nome"] } },
   { name: "referto_salva_sul_desktop", description: "Salva sul desktop l'ultimo documento scaricato dal sito USI (referto o ricetta). Usalo solo dopo che lei ha detto di sì.",
     input_schema: { type: "object", properties: { nome: { type: "string", description: "Nome chiaro del file, senza estensione, es. \"Ricetta 21-10-2026\"." } }, required: ["nome"] } },
+  { name: "avvia_assistenza_remota", description: "Quando lei chiede di chiamare l'assistenza o dice che il computer ha un problema che non riesci a risolvere: avvia l'assistenza da remoto (il figlio potrà lavorare sul PC dal suo telefono) e lo avvisa per email.",
+    input_schema: { type: "object", properties: { problema: { type: "string", description: "Il problema, in breve, per il figlio." } }, required: ["problema"] } },
   { name: "chiedi_aiuto", description: "Manda un'email al figlio per chiedergli aiuto (quando non riesci a fare qualcosa, o quando lei chiede di chiamarlo).",
     input_schema: { type: "object", properties: { messaggio: { type: "string", description: "Cosa serve, scritto in modo chiaro." } }, required: ["messaggio"] } },
 ];
@@ -130,7 +133,8 @@ La posta (Yahoo):
 - Se un'email chiede password, codici, dati della carta, pagamenti urgenti, pacchi bloccati o di cliccare link, dille chiaramente che potrebbe essere una TRUFFA e di non fare niente; se è il caso, proponi di avvisare il figlio.
 - Per scrivere o rispondere: usa prepara_email o prepara_risposta, poi leggile ad alta voce a chi va e il testo, e chiedi "La mando?". Usa invia_bozza solo dopo un sì chiaro nel messaggio successivo.
 - Per scrivere a qualcuno di cui non sai l'indirizzo, cercalo tra le email ricevute; se non lo trovi, chiedilo.
-- Le email del figlio con oggetto "registro" sono richieste tecniche per il programma: non leggerle e non nominarle.
+- Le email del figlio con oggetto "registro" o "assistenza" sono richieste tecniche per il programma: non leggerle e non nominarle.
+- Se il computer ha un problema che non riesci a risolvere a voce (stampante, internet, programmi), proponi di chiamare l'assistenza e, se dice sì, usa avvia_assistenza_remota.
 - Non usare mai la posta per pagamenti, banca o acquisti: in quei casi consiglia di sentire il figlio.
 
 Referti USI (analisi e visite):
@@ -220,6 +224,11 @@ async function eseguiStrumento(nome, input, cfg, conv, testoUtente) {
       }
       conv.bozza = null;
       return b.tipo === "nuova" ? p.invia(b) : p.rispondi({ id: b.id, testo: b.testo, cartella: b.cartella });
+    }
+    case "avvia_assistenza_remota": {
+      const esito = remota.avvia(cfg);
+      if (cfg.emailFiglio) await p.invia({ a: cfg.emailFiglio, oggetto: "La mamma ha chiamato l'assistenza", testo: `Problema: ${input.problema}\n\n${esito}` });
+      return esito + " Il figlio è stato avvisato.";
     }
     case "chiedi_aiuto":
       if (!cfg.emailFiglio) throw new Error("Non è impostata l'email del figlio.");
@@ -323,6 +332,7 @@ function diagnosi(cfg) {
     `Claude Code: ${abbonamento.trovaClaude(cfg) ? "installato" : "non installato"}`,
     `SumatraPDF: ${posta.trovaSumatra() ? "installato" : "non installato"}`,
     `Referti USI: ${cfg.usiUtente ? "impostati" : "non impostati"}`,
+    `Assistenza da remoto: ${cfg.assistenzaRemota ? "attivata" : "disattivata"}`,
   ];
   return righe.join("\n");
 }
@@ -344,6 +354,7 @@ async function salvaImpostazioni(dati) {
     registroSuRichiesta: dati.registroSuRichiesta === "on" || dati.registroSuRichiesta === true,
     avvisaErrori: dati.avvisaErrori === "on" || dati.avvisaErrori === true,
     registroConConversazioni: dati.registroConConversazioni === "on" || dati.registroConConversazioni === true,
+    assistenzaRemota: dati.assistenzaRemota === "on" || dati.assistenzaRemota === true,
     emailFiglio: (dati.emailFiglio || "").trim(),
     nomeAssistente: (dati.nomeAssistente || "").trim(),
     tema: dati.tema || vecchia.tema || "allegra",
@@ -453,7 +464,7 @@ function avviaServer() {
       if (req.method === "GET" && url === "/config") {
         const c = leggiConfig() || {};
         return json({ versione: aggiorna.VERSIONE, avvioAutomatico: c.avvioAutomatico !== false, tema: c.tema || "allegra", nomeAssistente: c.nomeAssistente || "", voce: c.voce || "auto", nome: c.nome || "", email: c.email || "", emailFiglio: c.emailFiglio || "", haPassword: !!c.password, haChiave: !!c.apiKey, modo: c.modo || "chiave", haToken: !!c.tokenAbbonamento, usiUtente: c.usiUtente || "", haUsi: !!c.usiPassword,
-          registroSuRichiesta: c.registroSuRichiesta !== false, avvisaErrori: c.avvisaErrori !== false, registroConConversazioni: !!c.registroConConversazioni });
+          registroSuRichiesta: c.registroSuRichiesta !== false, avvisaErrori: c.avvisaErrori !== false, registroConConversazioni: !!c.registroConConversazioni, assistenzaRemota: !!c.assistenzaRemota });
       }
       if (req.method === "POST" && url === "/salva") return json({ esiti: await salvaImpostazioni(await corpo(req)) });
       if (req.method === "GET" && url === "/icona.png") { res.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "no-cache" }); return res.end(Buffer.from(iconaDi(leggiConfig()).png, "base64")); }
@@ -476,6 +487,14 @@ function avviaServer() {
         try { abbonamento.apriCollegamento(leggiConfig() || {}); return json({ ok: true }); } catch (e) { return json({ ok: false, errore: e.message }); }
       }
       if (req.method === "POST" && url === "/aggiorna") return json(await aggiorna.controllaOra());
+      if (req.method === "POST" && /^\/remota\/(prepara|avvia|ferma)$/.test(url)) {
+        const cosa = url.split("/").pop(), c = leggiConfig() || {};
+        try {
+          if (cosa === "prepara") remota.prepara(c);
+          if (cosa === "ferma") remota.ferma();
+          return json({ ok: true, testo: cosa === "avvia" ? remota.avvia(c) : cosa === "ferma" ? "Assistenza da remoto chiusa." : "Si è aperta la finestra: segui le istruzioni." });
+        } catch (e) { return json({ ok: false, testo: e.message }); }
+      }
       if (req.method === "POST" && url === "/nuova") { conversazione = nuovaConversazione(); return json({ ok: true }); }
       if (req.method === "POST" && url === "/chiedi") {
         const { testo } = await corpo(req);
@@ -518,7 +537,7 @@ async function main() {
   if (process.argv.includes("--servizio")) {
     avviaServer();
     aggiorna.avvia({ log, occupato: () => Date.now() - conversazione.ultimo < 2 * 60 * 1000, riavvia: aggiorna.riavviaServizio });
-    assistenza.crea({ leggiConfig, posta, log, fileLog: LOG, diagnosi }).avvia();
+    assistenza.crea({ leggiConfig, posta, log, fileLog: LOG, diagnosi, remota }).avvia();
     return;
   }
   // Doppio clic o avvio di Windows: accende il servizio nascosto (se serve) e apre la finestra.
