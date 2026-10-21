@@ -64,6 +64,13 @@
   "chiama l'assistenza") o dal pulsante. Prima volta: "Prepara" apre `claude` per il login completo + fiducia nella cartella
   (Remote Control vuole il login completo, non basta il token di setup-token). NON provata: serve Windows + account vero.
 
+- Grafica della finestra (v1.5, scelte dell'utente "2 3 4", NIENTE orologio): risposta grande (34px) bianca su riquadro scuro;
+  sottotitoli a karaoke (`scriviRisposta`/`arrivaA`, eventi `onboundary` della voce, altrimenti stima ~14 lettere/s): parole
+  dette accese, quella detta ora in giallo; mentre pensa scrive cosa fa DAVVERO: il servizio tiene `attivita` (tabella
+  `ATTIVITA` in `assistente.js`, segnata in `eseguiStrumento`), la pagina chiede `GET /attivita` ogni 0,5 s e mostra
+  "Sto controllando la posta" + pastiglia "📧 Posta di Yahoo". In abbonamento `claude -p` usa `--output-format stream-json
+  --verbose` (stream-json senza `--verbose` dà errore) per vedere anche WebSearch/WebFetch ("Sto cercando su internet").
+
 ## Versioni e aggiornamenti
 - La versione è `version` in `package.json` (finisce nell'exe come `__VERSIONE__`).
 - Push su `main` → GitHub Actions (`.github/workflows/rilascio.yml`, Windows): `npm test`, costruzione, prova

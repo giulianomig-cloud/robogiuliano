@@ -21,12 +21,19 @@ function trovaClaude(cfg = {}) {
   return candidati.find((c) => fs.existsSync(c)) || null;
 }
 
-function esegui(eseguibile, args, { input = "", env, cwd }) {
+function esegui(eseguibile, args, { input = "", env, cwd, onRiga }) {
   return new Promise((ok, ko) => {
     const p = spawn(eseguibile, args, { env, cwd, windowsHide: true, shell: /\.cmd$/i.test(eseguibile) });
     let out = "", err = "";
     const timer = setTimeout(() => { p.kill(); ko(new ErroreAbbonamento("tempo", "Claude Code non ha risposto in tempo.")); }, ATTESA_MASSIMA);
-    p.stdout.on("data", (d) => (out += d));
+    let resto = "";
+    p.stdout.on("data", (d) => {
+      out += d;
+      if (!onRiga) return;
+      const righe = (resto + d).split("\n");
+      resto = righe.pop();
+      righe.forEach(onRiga);
+    });
     p.stderr.on("data", (d) => (err += d));
     p.on("error", (e) => { clearTimeout(timer); ko(new ErroreAbbonamento("mancante", e.message)); });
     p.on("close", (codice) => { clearTimeout(timer); ok({ codice, out, err }); });
@@ -35,7 +42,8 @@ function esegui(eseguibile, args, { input = "", env, cwd }) {
 }
 
 // Una domanda a Claude Code. "sessione" continua la conversazione di prima (per "stampala", "sì, mandala"…).
-async function chiedi({ cfg, testo, sistema, sessione, mcp, cartella }) {
+// "onStrumento" viene chiamato appena Claude Code usa uno strumento (per mostrare cosa sta facendo).
+async function chiedi({ cfg, testo, sistema, sessione, mcp, cartella, onStrumento = () => {} }) {
   const claude = trovaClaude(cfg);
   if (!claude) throw new ErroreAbbonamento("mancante", "Claude Code non è installato.");
   fs.mkdirSync(cartella, { recursive: true });
@@ -45,7 +53,7 @@ async function chiedi({ cfg, testo, sistema, sessione, mcp, cartella }) {
   fs.writeFileSync(fileMcp, JSON.stringify({ mcpServers: { posta: { type: "stdio", ...mcp } } }));
 
   const args = [
-    "-p", "--output-format", "json",
+    "-p", "--output-format", "stream-json", "--verbose",
     "--restricted", "--tools", "WebSearch,WebFetch",
     "--mcp-config", fileMcp, "--strict-mcp-config",
     "--allowedTools", "mcp__posta,WebSearch,WebFetch",
@@ -60,9 +68,16 @@ async function chiedi({ cfg, testo, sistema, sessione, mcp, cartella }) {
   delete env.ANTHROPIC_AUTH_TOKEN;
   if (cfg.tokenAbbonamento) env.CLAUDE_CODE_OAUTH_TOKEN = cfg.tokenAbbonamento;
 
-  const { codice, out, err } = await esegui(claude, args, { input: testo, env, cwd: cartella });
-  let r;
-  try { r = JSON.parse(out.trim().split("\n").pop()); } catch { r = null; }
+  const leggi = (riga) => { try { return JSON.parse(riga); } catch { return null; } };
+  const onRiga = (riga) => {
+    const m = leggi(riga);
+    if (m && m.type === "assistant" && m.message && Array.isArray(m.message.content)) {
+      for (const c of m.message.content) if (c.type === "tool_use") onStrumento(c.name);
+    }
+  };
+  const { codice, out, err } = await esegui(claude, args, { input: testo, env, cwd: cartella, onRiga });
+  // Con stream-json escono tante righe: la risposta finale è quella con type "result".
+  const r = out.trim().split("\n").map(leggi).filter((m) => m && m.type === "result").pop() || null;
   if (!r || r.is_error || codice !== 0) {
     const testoErrore = `${r ? r.result || r.subtype : ""} ${err}`.trim();
     if (/log ?in|auth|token|401|credential|not logged/i.test(testoErrore)) throw new ErroreAbbonamento("accesso", testoErrore);

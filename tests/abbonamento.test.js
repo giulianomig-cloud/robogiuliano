@@ -68,3 +68,15 @@ test("la finestra per collegare l'account usa il percorso giusto anche con gli s
   assert.ok(testo.includes(`"${claude}" setup-token`));
   assert.match(testo, /\r\npause\r\n$/);
 });
+
+test("mentre lavora dice quale strumento usa (per scrivere \"Sto cercando su internet\")", async () => {
+  const abbonamento = require("../src/abbonamento");
+  const usati = [];
+  const r = await abbonamento.chiedi({
+    cfg: { claudePath: claudeFinto() }, testo: "CERCA il meteo", sistema: "prova", mcp: { command: "x", args: [] },
+    cartella: fs.mkdtempSync(path.join(os.tmpdir(), "abb-")), onStrumento: (n) => usati.push(n),
+  });
+  assert.deepStrictEqual(usati, ["WebSearch"]);
+  assert.match(r.testo, /^RISPOSTA /);
+  assert.strictEqual(r.sessione, "sessione-1");
+});

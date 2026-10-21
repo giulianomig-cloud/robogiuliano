@@ -177,7 +177,30 @@ function sitoReferti(cfg) {
   return nav;
 }
 
+// Quello che l'assistente sta facendo davvero, mostrato nella finestra mentre lei aspetta.
+const ATTIVITA = [
+  [/^(elenco|cerca)_email$/, "Sto controllando la posta", "📧", "Posta di Yahoo"],
+  [/^leggi_email$/, "Sto leggendo l'email", "📧", "Posta di Yahoo"],
+  [/^(stampa_|referto_stampa)/, "Sto stampando", "🖨️", "Stampante"],
+  [/^(apri_allegato|referto_mostra)$/, "Sto aprendo il documento", "📄", "Documento"],
+  [/^prepara_/, "Sto scrivendo l'email", "✉️", "Posta di Yahoo"],
+  [/^invia_bozza$/, "Sto mandando l'email", "✉️", "Posta di Yahoo"],
+  [/^sito_scrivi$/, "Sto entrando nel sito USI", "🏥", "Referti USI"],
+  [/^sito_scarica$/, "Sto scaricando il referto", "🏥", "Referti USI"],
+  [/^(referti_apri|sito_)/, "Sto guardando i referti USI", "🏥", "Referti USI"],
+  [/salva_sul_desktop$/, "Sto salvando sul desktop", "💾", "Desktop"],
+  [/^chiedi_aiuto$/, "Sto scrivendo a tuo figlio", "🆘", "Email al figlio"],
+  [/^avvia_assistenza_remota$/, "Sto chiamando l'assistenza", "🛠️", "Assistenza"],
+  [/^Web(Search|Fetch)$/, "Sto cercando su internet", "🌐", "Internet"],
+];
+let attivita = null;
+function segnaAttivita(nome) {
+  const a = ATTIVITA.find(([re]) => re.test(nome));
+  if (a) attivita = { testo: a[1], icona: a[2], dove: a[3] };
+}
+
 async function eseguiStrumento(nome, input, cfg, conv, testoUtente) {
+  segnaAttivita(nome);
   const p = posta.crea(cfg);
   switch (nome) {
     case "referti_apri": return sitoReferti(cfg).apri(cfg.refertiIndirizzo || "https://www.usi.it/areaprivata/referti");
@@ -307,6 +330,7 @@ async function chiediConAbbonamento(cfg, conv, testoUtente) {
   const r = await abbonamento.chiedi({
     cfg, testo: `[${adesso}] ${testoUtente}`, sistema: sistema(cfg), sessione: conv.sessione,
     mcp: { command, args, env: { ASSISTENTE_TOKEN: SEGRETO } }, cartella: path.join(DIR, "abbonamento"),
+    onStrumento: (nome) => segnaAttivita(nome.replace(/^mcp__posta__/, "")),
   });
   conv.sessione = r.sessione;
   return r.testo || "Fatto.";
@@ -457,6 +481,7 @@ function avviaServer() {
     if (origine && origine !== `http://127.0.0.1:${PORTA}`) return json({ errore: "vietato" }, 403);
     try {
       const url = req.url.split("?")[0];
+      if (req.method === "GET" && url === "/attivita") return json(attivita || {});
       if (req.method === "GET" && url === "/ping") return json({ ok: true, versione: aggiorna.VERSIONE });
       if (req.method === "GET" && url === "/") return html(leggiConfig() ? PAGINA : IMPOSTAZIONI);
       if (req.method === "GET" && url === "/impostazioni") return html(IMPOSTAZIONI);
@@ -500,7 +525,9 @@ function avviaServer() {
         const { testo } = await corpo(req);
         log("lei:", testo);
         let risposta;
+        attivita = null;
         try { risposta = await chiedi(String(testo || "").slice(0, 2000)); } catch (e) { log("chiedi", e); risposta = spiegaErrore(e); }
+        attivita = null;
         log("claude:", risposta);
         return json({ risposta });
       }

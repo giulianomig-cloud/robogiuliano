@@ -17,7 +17,19 @@
   #stato { font-size: 44px; font-weight: 700; }
   #aiuto { font-size: 28px; }
   #detto { font-size: 26px; font-style: italic; min-height: 1.4em; max-width: 900px; }
-  #risposta { font-size: 32px; line-height: 1.45; max-width: 1000px; min-height: 1.4em; }
+  /* Risposta grande e leggibile: scritta bianca su un riquadro scuro, max-height con scorrimento per quelle lunghe */
+  #risposta { font-size: 34px; font-weight: 500; line-height: 1.5; max-width: 1100px; min-height: 1.4em; max-height: 38vh; overflow-y: auto; scrollbar-width: none; }
+  #risposta:not(:empty) { color: #fff; }
+  /* Sottotitoli a karaoke: le parole già dette si accendono, quella che sta dicendo è gialla */
+  #risposta .p { transition: opacity .25s, color .25s; opacity: .38; }
+  #risposta .p.detta { opacity: 1; }
+  #risposta .p.ora { opacity: 1; color: #ffe27a; }
+  /* Cosa sta facendo davvero (posta, stampante, internet…) */
+  #azione { display: none; align-items: center; gap: 10px; margin-top: -14px; padding: 8px 20px; border-radius: 999px;
+    background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); font-size: 22px; font-weight: 600; }
+  #azione.si { display: inline-flex; }
+  #azione::after { content: ""; display: inline-block; width: 1.2em; text-align: left; animation: puntini 1.2s steps(4) infinite; }
+  @keyframes puntini { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
   #avvia { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 24px; font-size: 40px; font-weight: 700; cursor: pointer; z-index: 5; }
   #avvia span { font-size: 120px; }
   #impostazioni { position: fixed; bottom: 12px; right: 16px; font-size: 15px; opacity: .5; color: inherit; }
@@ -82,7 +94,7 @@
   [data-tema="allegra"] body.errore .bocca { border-bottom: 0; border-top: 5px solid #241446; border-radius: 40px 40px 0 0; }
   [data-tema="allegra"] #stato { font-weight: 800; background: linear-gradient(90deg, #ffd36e, #ff7eb3, #7ef0ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
   [data-tema="allegra"] #aiuto, [data-tema="allegra"] #detto { color: #e2d6ff; }
-  [data-tema="allegra"] #risposta:not(:empty) { background: rgba(255,255,255,.1); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,.2); border-radius: 28px; padding: 18px 28px; }
+  [data-tema="allegra"] #risposta:not(:empty) { background: rgba(20,8,50,.55); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,.2); border-radius: 28px; padding: 18px 28px; }
   [data-tema="allegra"] #avvia { background: rgba(20,11,51,.95); }
 
   /* ---------- RoboGiuliano: 4 pose, la bocca si muove quando parla ---------- */
@@ -135,7 +147,7 @@
   [data-tema="robo"] body.errore #cerchio::after { background: radial-gradient(circle, rgba(255,80,100,.6), transparent 65%); }
   [data-tema="robo"] #stato { font-weight: 800; background: linear-gradient(90deg, #7fe3ff, #ffffff 50%, #c9b6ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
   [data-tema="robo"] #aiuto, [data-tema="robo"] #detto { color: #a9bfe6; }
-  [data-tema="robo"] #risposta:not(:empty) { background: rgba(255,255,255,.07); backdrop-filter: blur(18px); border: 1px solid rgba(127,227,255,.25); border-radius: 24px; padding: 18px 28px; }
+  [data-tema="robo"] #risposta:not(:empty) { background: rgba(0,0,0,.42); backdrop-filter: blur(18px); border: 1px solid rgba(127,227,255,.25); border-radius: 24px; padding: 18px 28px; }
   [data-tema="robo"] #avvia { background: rgba(2,6,15,.95); }
   /* RoboYaymaris: stesso stile dei robot, nei toni rosa e viola */
   [data-personaggio="yaymaris"] body { background: radial-gradient(ellipse at 50% 30%, #5a1f6e 0%, #2a0d3f 48%, #10040f 84%); }
@@ -155,7 +167,8 @@
     #stato { font-size: 36px; }
     #aiuto { font-size: 22px; }
     #detto { font-size: 21px; }
-    #risposta { font-size: 26px; }
+    #risposta { font-size: 30px; }
+    #azione { font-size: 19px; margin-top: -8px; }
   }
 </style>
 </head>
@@ -163,6 +176,7 @@
   <div id="bolle" aria-hidden="true"><span style="left:6%;width:22px;height:22px;--c:#ffd36e;--t:14s;--d:-2s;--x:40px"></span><span style="left:15%;width:12px;height:12px;--c:#7ef0ff;--t:11s;--d:-7s;--x:-30px"></span><span style="left:24%;width:30px;height:30px;--c:#ff7eb3;--t:17s;--d:-4s;--x:50px"></span><span style="left:37%;width:14px;height:14px;--c:#a78bfa;--t:12s;--d:-9s;--x:-40px"></span><span style="left:48%;width:20px;height:20px;--c:#7ef0ff;--t:15s;--d:-1s;--x:30px"></span><span style="left:58%;width:10px;height:10px;--c:#ffd36e;--t:10s;--d:-5s;--x:-20px"></span><span style="left:67%;width:26px;height:26px;--c:#ff7eb3;--t:16s;--d:-11s;--x:45px"></span><span style="left:76%;width:16px;height:16px;--c:#a78bfa;--t:13s;--d:-3s;--x:-35px"></span><span style="left:85%;width:24px;height:24px;--c:#7ef0ff;--t:18s;--d:-8s;--x:30px"></span><span style="left:93%;width:12px;height:12px;--c:#ffd36e;--t:11s;--d:-6s;--x:-25px"></span></div>
   <button id="cerchio" aria-label="Parla con l'assistente"><span class="strato s1"></span><span class="strato s2"></span><span class="strato s3"></span><span class="faccia"><span class="occhio sx"></span><span class="occhio dx"></span><span class="bocca"></span></span><span class="robo"><img data-p="riposo" data-f="riposo" alt=""><img data-p="ascolto" data-f="ascolto" alt=""><img data-p="pensa" data-f="pensa" alt=""><img data-p="parla" data-f="parla" alt=""><img data-p="parla" data-f="parla-2" class="p2" alt=""><img data-p="parla" data-f="parla-3" class="p3" alt=""></span><span class="orbita"><i></i><i></i></span><span class="onde"></span><span class="icona">🎙️</span></button>
   <div id="stato">Un momento…</div>
+  <div id="azione"></div>
   <div id="aiuto">Di' <b>“Ehi <span class="nome">Claude</span>”</b> oppure tocca il cerchio</div>
   <div id="detto"></div>
   <div id="risposta"></div>
@@ -237,16 +251,55 @@
     return t.replace(/https?:\/\/\S+/g, "").replace(/[*_#`>•]/g, "").replace(/\[id \d+\]/g, "").replace(/\s+/g, " ").trim();
   }
 
+  // La risposta scritta parola per parola, ognuna con la sua posizione nel testo (per il karaoke).
+  let parole = [];
+  function scriviRisposta(testo) {
+    const box = $("risposta");
+    box.textContent = "";
+    parole = [];
+    for (const m of testo.matchAll(/\S+/g)) {
+      const el = document.createElement("span");
+      el.className = "p";
+      el.textContent = m[0];
+      box.append(el, " ");
+      parole.push({ el, da: m.index, a: m.index + m[0].length });
+    }
+  }
+  // Accende le parole fino alla posizione "pos"; quella che contiene "pos" è quella che sta dicendo.
+  function arrivaA(pos, finita) {
+    for (const p of parole) {
+      const detta = p.da < pos || (finita && p.da <= pos);
+      const ora = !finita && p.da <= pos && pos < p.a + 1;
+      p.el.classList.toggle("detta", detta || ora);
+      if (ora && !p.el.classList.contains("ora")) p.el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      p.el.classList.toggle("ora", ora);
+    }
+  }
+
   // Le frasi lunghe vengono dette a pezzi: alcune voci si interrompono dopo 15 secondi.
   function parla(testo) {
-    return new Promise((fatto) => {
-      const frasi = pulisci(testo).match(/[^.!?;:]+[.!?;:]*/g) || [testo];
-      let i = 0;
+    return new Promise((finito) => {
+      const pulito = pulisci(testo);
+      const frasi = [...pulito.matchAll(/[^.!?;:]+[.!?;:]*/g)];
+      if (!frasi.length) frasi.push(Object.assign([pulito], { index: 0 }));
+      let i = 0, stima = null;
+      const fatto = () => { clearInterval(stima); arrivaA(pulito.length, true); finito(); };
       speechSynthesis.cancel();
       const prossima = () => {
+        clearInterval(stima);
         if (i >= frasi.length || stato !== "parla") return fatto();
-        const u = new SpeechSynthesisUtterance(frasi[i++].trim());
+        const f = frasi[i++], testoFrase = f[0].trim();
+        const inizio = f.index + f[0].indexOf(testoFrase), fine = inizio + testoFrase.length;
+        if (i > 1) arrivaA(inizio - 1, true);
+        const u = new SpeechSynthesisUtterance(testoFrase);
         u.lang = "it-IT"; if (voce) u.voice = voce; u.rate = 0.95;
+        // Se la voce dice a che parola è arrivata si segue quella, altrimenti si stima (circa 14 lettere al secondo).
+        let seguo = false;
+        u.onboundary = (e) => { if (e.name === "word" || e.name === undefined) { seguo = true; clearInterval(stima); arrivaA(inizio + e.charIndex); } };
+        u.onstart = () => {
+          const t0 = Date.now();
+          stima = setInterval(() => { if (!seguo) arrivaA(Math.min(fine - 1, inizio + (Date.now() - t0) * 0.014)); }, 120);
+        };
         u.onend = prossima;
         u.onerror = (e) => {
           if (e.error === "not-allowed") { parlaSbloccato = false; $("avvia").style.display = "flex"; }
@@ -261,7 +314,7 @@
   async function rispondi(testo, poiAscolta) {
     fermaAscolto();
     mostra("parla", "Ti rispondo");
-    $("risposta").textContent = testo;
+    scriviRisposta(pulisci(testo));
     await parla(testo);
     if (stato !== "parla") return;
     // Se ha fatto una domanda, ascolta subito la risposta senza bisogno di ridire il nome.
@@ -324,13 +377,26 @@
     $("detto").textContent = "“" + testo + "”";
     $("risposta").textContent = "";
     mostra("pensa", "Ci penso…");
+    // Intanto chiede al programma cosa sta facendo davvero (posta, stampante, internet…) e lo scrive.
+    const guarda = setInterval(async () => {
+      try {
+        const a = await (await fetch("/attivita")).json();
+        if (stato !== "pensa" || !a.testo) return;
+        $("stato").textContent = a.testo;
+        $("azione").textContent = a.icona + " " + a.dove;
+        $("azione").classList.add("si");
+      } catch {}
+    }, 500);
+    let risposta;
     try {
       const r = await fetch("/chiedi", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ testo }) });
-      const { risposta } = await r.json();
-      await rispondi(risposta || "Scusa, non ho capito.");
+      risposta = (await r.json()).risposta || "Scusa, non ho capito.";
     } catch {
-      await rispondi("Scusa, qualcosa non ha funzionato. Riprova.");
+      risposta = "Scusa, qualcosa non ha funzionato. Riprova.";
     }
+    clearInterval(guarda);
+    $("azione").classList.remove("si");
+    await rispondi(risposta);
   }
 
   // ---------- Tocchi ----------

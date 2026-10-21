@@ -16,6 +16,10 @@ process.stdin.on("end", () => {
     chiaveApi: !!process.env.ANTHROPIC_API_KEY,
     codice: process.env.CLAUDE_CODE_OAUTH_TOKEN || null,
   };
+  if (a.includes("stream-json")) {
+    console.log(JSON.stringify({ type: "system", subtype: "init" }));
+    if (input.includes("CERCA")) console.log(JSON.stringify({ type: "assistant", message: { content: [{ type: "tool_use", name: "WebSearch", input: {} }] } }));
+  }
   if (input.includes("LIMITE")) {
     console.log(JSON.stringify({ type: "result", is_error: true, result: "Claude usage limit reached" }));
     process.exit(1);
