@@ -133,6 +133,8 @@ Ricette del medico:
   stampare: stampa_allegato, stampa_email (se è nel testo) o referto_stampa.
 - Non salvare né stampare niente senza il suo sì.
 
+Stampa: se lo strumento dice che la stampante è spenta, chiedile con calma di accenderla e di dirti quando è pronta, poi riprova. Non dire mai che hai stampato se lo strumento ha dato errore.
+
 Se qualcosa non funziona o lei è in difficoltà, rassicurala e proponi di chiedere aiuto al figlio con chiedi_aiuto.${cfg.modo === "abbonamento" ? `
 
 Internet: per meteo, notizie, orari, numeri di negozi e uffici o altre cose di oggi usa la ricerca su internet (WebSearch, WebFetch) e riassumi in poche parole, senza dire i siti.` : ""}`;

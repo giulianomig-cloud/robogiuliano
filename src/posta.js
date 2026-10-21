@@ -183,8 +183,34 @@ function powershell(comando, attesa = 60000) {
 }
 const psStr = (s) => "'" + s.replace(/'/g, "''") + "'";
 
+// Prima di stampare: la stampante predefinita è vera, accesa e senza fogli rimasti in coda?
+// (Con la stampante spenta Windows mette il foglio in coda senza errori, e uscirebbe ore dopo.)
+const FINTE = /pdf|onenote|fax|xps|anydesk|send to/i;
+function giudicaStampante(s) {
+  if (!s || !s.nome) return "Su questo computer non c'è una stampante predefinita: serve l'aiuto del figlio per sceglierla.";
+  if (FINTE.test(s.nome)) return `La stampante predefinita è "${s.nome}", che non stampa su carta: serve l'aiuto del figlio per scegliere quella vera.`;
+  if (s.offline) return `La stampante "${s.nome}" sembra spenta o scollegata. Chiedile di accenderla e di dirti quando è pronta, poi riprova.`;
+  if (s.inCoda > 0) return `Nella stampante "${s.nome}" ci sono ancora ${s.inCoda} fogli in attesa (forse era spenta prima): chiedile se la stampante è accesa e se sono usciti, così non escono doppi; poi riprova.`;
+  return null;
+}
+async function controllaStampante() {
+  if (process.platform !== "win32") return;
+  const out = await new Promise((ok) => execFile("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", `
+    [Console]::OutputEncoding = [Text.Encoding]::UTF8
+    $p = Get-CimInstance Win32_Printer -Filter "Default=TRUE" | Select-Object -First 1
+    if (-not $p) { '{}'; exit }
+    $coda = @(Get-PrintJob -PrinterName $p.Name -ErrorAction SilentlyContinue).Count
+    @{ nome = $p.Name; offline = ($p.WorkOffline -or $p.PrinterStatus -eq 7 -or $p.ExtendedPrinterStatus -eq 7 -or $p.DetectedErrorState -eq 9); inCoda = $coda } | ConvertTo-Json -Compress`],
+    { windowsHide: true, timeout: 30000, encoding: "utf8" }, (err, stdout) => ok(err ? "" : stdout)));
+  let stato;
+  try { stato = JSON.parse(out.trim() || "{}"); } catch { return; }     // se il controllo non riesce, si stampa lo stesso
+  const problema = giudicaStampante(stato);
+  if (problema) throw new Error(problema);
+}
+
 async function stampaTesto(contenuto) {
   if (process.platform !== "win32") throw new Error("La stampa funziona solo su Windows.");
+  await controllaStampante();
   const file = path.join(os.tmpdir(), `email-${Date.now()}.txt`);
   fs.writeFileSync(file, "﻿" + contenuto, "utf8");
   // Out-Printer manda il testo alla stampante predefinita senza aprire finestre.
@@ -229,6 +255,7 @@ function trovaSumatra() {
 // di Windows del programma predefinito (Acrobat Reader, Foxit…).
 async function stampaFile(file) {
   if (process.platform !== "win32") throw new Error("La stampa funziona solo su Windows.");
+  await controllaStampante();
   const sumatra = /\.pdf$/i.test(file) && trovaSumatra();
   if (sumatra) {
     await new Promise((ok, ko) => execFile(sumatra, ["-print-to-default", "-silent", file], { windowsHide: true, timeout: 120000 },
@@ -245,4 +272,4 @@ async function apriFile(file) {
   if (process.platform === "win32") await powershell(`Start-Process -FilePath ${psStr(file)}`);
 }
 
-module.exports = { crea, powershell, psStr, stampaFile, apriFile, trovaSumatra, copiaSulDesktop, cartellaDesktop };
+module.exports = { crea, powershell, psStr, stampaFile, apriFile, trovaSumatra, copiaSulDesktop, cartellaDesktop, giudicaStampante };
