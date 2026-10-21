@@ -88,8 +88,10 @@
   /* Parla: la bocca si apre e si chiude */
   [data-tema="allegra"] body.parla #cerchio { animation: parlotta .45s ease-in-out infinite; box-shadow: 0 0 90px rgba(255,126,179,.45); }
   @keyframes parlotta { 50% { transform: scale(1.03, .97); } }
-  [data-tema="allegra"] body.parla .bocca { border: 0; background: #241446; width: 34px; margin-left: -17px; animation: bocca .32s ease-in-out infinite alternate; }
-  @keyframes bocca { from { height: 8px; border-radius: 0 0 20px 20px; } to { height: 26px; border-radius: 40% 40% 50% 50%; } }
+  [data-tema="allegra"] body.parla .bocca { border: 0; background: #241446; width: 34px; margin-left: -17px; height: 8px; border-radius: 0 0 20px 20px; transition: height .07s, border-radius .07s; }
+  /* la bocca segue le parole: 0 chiusa, 1 a metà, 2 aperta (data-bocca sul body, messo da diciParola) */
+  [data-tema="allegra"] body.parla[data-bocca="1"] .bocca { height: 16px; border-radius: 40% 40% 50% 50%; }
+  [data-tema="allegra"] body.parla[data-bocca="2"] .bocca { height: 26px; border-radius: 40% 40% 50% 50%; }
   [data-tema="allegra"] body.errore .s1 { background: linear-gradient(135deg, #ffb4a8, #f87171); }
   [data-tema="allegra"] body.errore .bocca { border-bottom: 0; border-top: 5px solid #241446; border-radius: 40px 40px 0 0; }
   [data-tema="allegra"] #stato { font-weight: 800; background: linear-gradient(90deg, #ffd36e, #ff7eb3, #7ef0ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -123,10 +125,9 @@
   [data-tema="robo"] body.parla .robo img[data-p="parla"] { opacity: 1; transform: scale(1); }
   /* mentre parla: bocca aperta → a metà → chiusa → a metà */
   [data-tema="robo"] .robo img.p2, [data-tema="robo"] .robo img.p3 { transition: none; transform: none; }
-  [data-tema="robo"] body.parla .robo img.p2 { animation: bocca-meta .48s step-end infinite; }
-  [data-tema="robo"] body.parla .robo img.p3 { animation: bocca-chiusa .48s step-end infinite; }
-  @keyframes bocca-meta { 0% { opacity: 0; } 25% { opacity: 1; } 50% { opacity: 0; } 75% { opacity: 1; } }
-  @keyframes bocca-chiusa { 0%, 25% { opacity: 0; } 50% { opacity: 1; } 75% { opacity: 0; } }
+  /* la bocca segue le parole: 0 chiusa (p3), 1 a metà (p2), 2 aperta (la posa "parla") */
+  [data-tema="robo"] body.parla[data-bocca="0"] .robo img.p3,
+  [data-tema="robo"] body.parla[data-bocca="1"] .robo img.p2 { opacity: 1; }
   /* lucine che girano e onde */
   [data-tema="robo"] .orbita { display: block; position: absolute; left: 50%; top: 46%; width: 390px; height: 390px; margin: -195px 0 0 -195px;
     border-radius: 50%; animation: ruota 6s linear infinite; pointer-events: none; z-index: -1; }
@@ -160,16 +161,47 @@
   [data-personaggio="yaymaris"] #stato { background: linear-gradient(90deg, #ff9ad5, #ffffff 50%, #c9a6ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
   [data-personaggio="yaymaris"] #aiuto, [data-personaggio="yaymaris"] #detto { color: #e4bfe0; }
 
-  /* Schermi bassi (portatili): tutto un po' più piccolo, così ci sta senza tagli */
-  @media (max-height: 820px) {
-    body { gap: 16px; }
-    #cerchio { zoom: .78; }
-    #stato { font-size: 36px; }
-    #aiuto { font-size: 22px; }
-    #detto { font-size: 21px; }
-    #risposta { font-size: 30px; }
-    #azione { font-size: 19px; margin-top: -8px; }
-  }
+  /* ---------- Avatar più vivi (v1.5) ---------- */
+  /* La luce dietro il robot si accende a ogni parola */
+  [data-tema="robo"] body.parla #cerchio::after { transition: filter .08s, scale .08s, background .5s; }
+  [data-tema="robo"] body.parla[data-bocca="2"] #cerchio::after { filter: blur(30px) brightness(1.8); }
+  [data-tema="robo"] body.parla[data-bocca="2"] #cerchio::before { scale: 1.03; }
+  /* Mentre ascolta, le onde e la luce seguono il volume della sua voce (--vol da 0 a 1) */
+  [data-tema="robo"] body.ascolto .onde { scale: calc(1 + var(--vol, 0) * .35); }
+  [data-tema="robo"] body.ascolto #cerchio::after { filter: blur(30px) brightness(calc(1 + var(--vol, 0) * 1.4)); scale: calc(1 + var(--vol, 0) * .25); transition: background .5s; }
+  [data-tema="allegra"] body.ascolto .s1 { scale: calc(1 + var(--vol, 0) * .1); }
+  [data-tema="allegra"] body.ascolto #cerchio::before, [data-tema="allegra"] body.ascolto #cerchio::after { scale: calc(1 + var(--vol, 0) * .45); }
+  [data-tema="allegra"] body.ascolto #cerchio { box-shadow: 0 0 calc(60px + var(--vol, 0) * 160px) rgba(126,240,255,.55), inset 0 1px 0 rgba(255,255,255,.3); }
+  /* Espressioni secondo quello che dice (data-umore: contenta, triste, sorpresa) */
+  [data-tema="allegra"] .faccia::before, [data-tema="allegra"] .faccia::after { content: ""; position: absolute; opacity: 0; transition: opacity .3s; }
+  [data-tema="allegra"] body[data-umore="contenta"] .occhio { background: transparent; border: 5px solid #241446; border-bottom: 0; border-radius: 26px 26px 0 0; height: 15px; top: 40%; animation: none; }
+  [data-tema="allegra"] body[data-umore="contenta"] .occhio::after { display: none; }
+  [data-tema="allegra"] body[data-umore="contenta"] .faccia::before, [data-tema="allegra"] body[data-umore="contenta"] .faccia::after {
+    opacity: 1; top: 55%; width: 24px; height: 13px; border-radius: 50%; background: rgba(255,80,140,.55); filter: blur(2px); }
+  [data-tema="allegra"] body[data-umore="contenta"] .faccia::before { left: 16%; }
+  [data-tema="allegra"] body[data-umore="contenta"] .faccia::after { right: 16%; }
+  [data-tema="allegra"] body[data-umore="triste"] .faccia::before, [data-tema="allegra"] body[data-umore="triste"] .faccia::after,
+  [data-tema="allegra"] body[data-umore="sorpresa"] .faccia::before, [data-tema="allegra"] body[data-umore="sorpresa"] .faccia::after {
+    opacity: 1; top: 27%; width: 26px; height: 5px; border-radius: 3px; background: #241446; }
+  [data-tema="allegra"] body[data-umore="triste"] .faccia::before { left: 28%; transform: rotate(-20deg); }
+  [data-tema="allegra"] body[data-umore="triste"] .faccia::after { right: 28%; transform: rotate(20deg); }
+  [data-tema="allegra"] body[data-umore="triste"] .occhio { height: 26px; top: 40%; }
+  [data-tema="allegra"] body[data-umore="triste"]:not(.parla) .bocca { border-bottom: 0; border-top: 5px solid #241446; border-radius: 40px 40px 0 0; }
+  [data-tema="allegra"] body[data-umore="sorpresa"] .faccia::before { left: 29%; top: 22%; transform: rotate(-8deg); }
+  [data-tema="allegra"] body[data-umore="sorpresa"] .faccia::after { right: 29%; top: 22%; transform: rotate(8deg); }
+  [data-tema="allegra"] body[data-umore="sorpresa"] .occhio { transform: scale(1.3); animation: none; }
+  [data-tema="allegra"] body[data-umore="sorpresa"]:not(.parla) .bocca { width: 22px; height: 22px; margin-left: -11px; border: 5px solid #241446; border-radius: 50%; }
+  /* Robot: cambia il colore della luce (verde bene, arancione problema, oro novità) */
+  [data-tema="robo"] body[data-umore] #cerchio::after { scale: 1.3; }
+  [data-tema="robo"] body[data-umore=""] #cerchio::after { scale: 1; }
+  [data-tema="robo"] body[data-umore="contenta"] #cerchio::before, [data-tema="robo"] body[data-umore="triste"] #cerchio::before,
+  [data-tema="robo"] body[data-umore="sorpresa"] #cerchio::before { opacity: .45; }
+  [data-tema="robo"] body[data-umore="contenta"] #cerchio::after { background: radial-gradient(circle, rgba(70,235,140,1), rgba(70,235,140,.6) 45%, transparent 70%); }
+  [data-tema="robo"] body[data-umore="triste"] #cerchio::after { background: radial-gradient(circle, rgba(255,140,40,1), rgba(255,140,40,.6) 45%, transparent 70%); }
+  [data-tema="robo"] body[data-umore="sorpresa"] #cerchio::after { background: radial-gradient(circle, rgba(255,215,70,1), rgba(255,215,70,.6) 45%, transparent 70%); }
+  [data-tema="robo"] body[data-umore="contenta"] .orbita i { background: #c9ffdf; box-shadow: 0 0 10px #46eb8c, 0 0 22px #46eb8c; }
+  [data-tema="robo"] body[data-umore="triste"] .orbita i { background: #ffe0c4; box-shadow: 0 0 10px #ff8c28, 0 0 22px #ff8c28; }
+  [data-tema="robo"] body[data-umore="sorpresa"] .orbita i { background: #fff3c4; box-shadow: 0 0 10px #ffd746, 0 0 22px #ffd746; }
 </style>
 </head>
 <body>
@@ -229,6 +261,7 @@
 
   function mostra(nuovo, scritta) {
     stato = nuovo;
+    chiudiBocca();
     document.body.className = { comando: "ascolto", pensa: "pensa", parla: "parla" }[nuovo] || "";
     $("stato").textContent = scritta;
     document.querySelector("#cerchio .icona").textContent = { comando: "👂", pensa: "💭", parla: "🗣️" }[nuovo] || "🎙️";
@@ -265,13 +298,64 @@
       parole.push({ el, da: m.index, a: m.index + m[0].length });
     }
   }
+  // ---------- Bocca a tempo con le parole: si apre e chiude per ogni sillaba (gruppo di vocali) ----------
+  let timerBocca = [];
+  const bocca = (livello) => { document.body.dataset.bocca = livello; };
+  function chiudiBocca() { timerBocca.forEach(clearTimeout); timerBocca = []; bocca(0); }
+  function diciParola(parola) {
+    chiudiBocca();
+    const sillabe = Math.max(1, Math.min(5, (parola.match(/[aeiouàèéìòù]+/gi) || []).length));
+    for (let s = 0; s < sillabe; s++) {
+      timerBocca.push(setTimeout(() => bocca(2), s * 130), setTimeout(() => bocca(1), s * 130 + 75));
+    }
+    timerBocca.push(setTimeout(() => bocca(0), sillabe * 130 + 30));
+  }
+
+  // Che faccia fare secondo quello che dice.
+  function umoreDi(t) {
+    if (/purtroppo|mi dispiace|non (sono riuscit|riesco|funziona)|spent[ao]|errore|problema|scusa/i.test(t)) return "triste";
+    if (/(email|mail|messagg\w*|letter\w*) nuov|nuov[ae] (email|mail)|è arrivat|sono arrivat/i.test(t) && !/non ci sono|nessun/i.test(t)) return "sorpresa";
+    if (/\b(fatto|ecco|perfetto|ho (stampato|mandato|inviato|salvato|scaricato)|stampat[ao]|inviat[ao]|salvat[ao])\b/i.test(t)) return "contenta";
+    return "";
+  }
+  let timerUmore = null;
+  function umore(u) { clearTimeout(timerUmore); document.body.dataset.umore = u; }
+
+  // ---------- Volume della sua voce mentre ascolta (per le onde) ----------
+  let volumeAvviato = false;
+  async function avviaVolume() {
+    if (volumeAvviato || !navigator.mediaDevices) return;
+    volumeAvviato = true;
+    try {
+      const flusso = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      const ac = new AudioContext(), a = ac.createAnalyser();
+      a.fftSize = 512;
+      ac.createMediaStreamSource(flusso).connect(a);
+      const dati = new Uint8Array(a.fftSize);
+      let liscio = 0, ultimo = -1;
+      const giro = () => {
+        if (stato === "comando") {
+          if (ac.state === "suspended") ac.resume();
+          a.getByteTimeDomainData(dati);
+          let somma = 0;
+          for (const v of dati) somma += (v - 128) ** 2;
+          liscio = liscio * 0.7 + Math.min(1, Math.sqrt(somma / dati.length) / 128 * 5) * 0.3;
+        } else liscio *= 0.8;
+        const v = Math.round(liscio * 100) / 100;
+        if (v !== ultimo) { document.body.style.setProperty("--vol", v); ultimo = v; }
+        requestAnimationFrame(giro);
+      };
+      giro();
+    } catch {}
+  }
+
   // Accende le parole fino alla posizione "pos"; quella che contiene "pos" è quella che sta dicendo.
   function arrivaA(pos, finita) {
     for (const p of parole) {
       const detta = p.da < pos || (finita && p.da <= pos);
       const ora = !finita && p.da <= pos && pos < p.a + 1;
       p.el.classList.toggle("detta", detta || ora);
-      if (ora && !p.el.classList.contains("ora")) p.el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      if (ora && !p.el.classList.contains("ora")) { p.el.scrollIntoView({ block: "nearest", behavior: "smooth" }); diciParola(p.el.textContent); }
       p.el.classList.toggle("ora", ora);
     }
   }
@@ -283,7 +367,7 @@
       const frasi = [...pulito.matchAll(/[^.!?;:]+[.!?;:]*/g)];
       if (!frasi.length) frasi.push(Object.assign([pulito], { index: 0 }));
       let i = 0, stima = null;
-      const fatto = () => { clearInterval(stima); arrivaA(pulito.length, true); finito(); };
+      const fatto = () => { clearInterval(stima); arrivaA(pulito.length, true); chiudiBocca(); finito(); };
       speechSynthesis.cancel();
       const prossima = () => {
         clearInterval(stima);
@@ -315,7 +399,9 @@
     fermaAscolto();
     mostra("parla", "Ti rispondo");
     scriviRisposta(pulisci(testo));
+    umore(umoreDi(testo));
     await parla(testo);
+    timerUmore = setTimeout(() => umore(""), 2500);
     if (stato !== "parla") return;
     // Se ha fatto una domanda, ascolta subito la risposta senza bisogno di ridire il nome.
     if (poiAscolta || /\?\s*$/.test(testo.trim())) aspettaComando(); else aRiposo();
@@ -354,6 +440,7 @@
   function aspettaComando() {
     clearTimeout(timerComando);
     mostra("comando", "Ti ascolto…");
+    avviaVolume();
     $("detto").textContent = "";
     timerComando = setTimeout(() => { if (stato === "comando") aRiposo(); }, ATTESA_COMANDO);
   }
@@ -376,6 +463,7 @@
     fermaAscolto();
     $("detto").textContent = "“" + testo + "”";
     $("risposta").textContent = "";
+    umore("");
     mostra("pensa", "Ci penso…");
     // Intanto chiede al programma cosa sta facendo davvero (posta, stampante, internet…) e lo scrive.
     const guarda = setInterval(async () => {

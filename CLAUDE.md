@@ -74,6 +74,11 @@
   compilato, rosso manca, grigio facoltativo non usato; dicono "compilato", NON "funziona"), menu a sinistra con 6 schede
   (Mamma e personaggio con tessere-figura, Posta Yahoo, Claude, Referti USI, Aiuto del figlio, Programma), interruttori,
   "Salva e prova" sempre visibile. Campo obbligatorio vuoto in un'altra scheda → si apre quella scheda.
+- Avatar più vivi (v1.5, approvati 1-4): bocca a tempo con le parole (`diciParola`: per ogni sillaba `data-bocca` 2→1, poi 0;
+  robot: 0 = `p3`, 1 = `p2`, 2 = posa "parla"; Aurora: altezza della bocca); mentre ascolta onde/luce seguono il volume del
+  microfono (`avviaVolume`, getUserMedia + AnalyserNode → `--vol`; se non va, nessun effetto); espressioni da parole della
+  risposta (`umoreDi` → `data-umore` contenta/triste/sorpresa: Aurora occhi/sopracciglia/guance, robot luce verde/arancione/
+  gialla, per 2,5 s dopo la risposta); luce del robot che pulsa a ogni parola. Scartato per ora: robot che sbattono le palpebre.
 
 ## Versioni e aggiornamenti
 - La versione è `version` in `package.json` (finisce nell'exe come `__VERSIONE__`).
