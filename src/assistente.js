@@ -410,6 +410,7 @@ function avviaServer() {
       if (req.method === "POST" && url === "/collega-claude") {
         try { abbonamento.apriCollegamento(leggiConfig() || {}); return json({ ok: true }); } catch (e) { return json({ ok: false, errore: e.message }); }
       }
+      if (req.method === "POST" && url === "/aggiorna") return json(await aggiorna.controllaOra());
       if (req.method === "POST" && url === "/nuova") { conversazione = nuovaConversazione(); return json({ ok: true }); }
       if (req.method === "POST" && url === "/chiedi") {
         const { testo } = await corpo(req);

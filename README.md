@@ -103,6 +103,7 @@ Poi **riavvia il computer** e controlla che si apra da solo.
 ## Aggiornamenti automatici
 Il programma installato controlla qui su GitHub (all'avvio e ogni 6 ore) se c'è una versione nuova:
 se c'è, la scarica e si riavvia da solo, mai mentre si sta parlando. Le impostazioni restano.
+Per non aspettare: impostazioni → in fondo **Controlla aggiornamenti** (lì c'è anche il numero di versione).
 
 ## Se qualcosa non va
 | Problema | Soluzione |

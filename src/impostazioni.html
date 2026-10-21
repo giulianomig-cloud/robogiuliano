@@ -89,6 +89,8 @@
   </form>
   <p class="sotto" style="margin-top:16px"><a href="/">← Torna all'assistente</a></p>
   <p class="sotto" id="versione" translate="no"></p>
+  <button type="button" class="secondario" id="controlla">Controlla aggiornamenti</button>
+  <div id="esitoAggiornamento"></div>
 </main>
 <script>
   const f = document.getElementById("modulo");
@@ -122,6 +124,24 @@
     if (!r.ok) alert("Non riuscito: " + r.errore);
     aggiornaStato();
   }
+  // Controlla aggiornamenti: se ce n'è uno, aspetta che il programma si riavvii e ricarica la pagina.
+  document.getElementById("controlla").onclick = async () => {
+    const b = document.getElementById("controlla"), out = document.getElementById("esitoAggiornamento");
+    b.disabled = true; b.textContent = "Controllo…"; out.innerHTML = "";
+    let r;
+    try { r = await (await fetch("/aggiorna", { method: "POST" })).json(); }
+    catch { r = { ok: false, testo: "Non riesco a controllare." }; }
+    const d = document.createElement("div");
+    d.className = "esito " + (r.ok ? "ok" : "no"); d.textContent = (r.ok ? "✓ " : "✕ ") + r.testo; out.appendChild(d);
+    b.disabled = false; b.textContent = "Controlla aggiornamenti";
+    if (r.aggiorna) {
+      b.disabled = true; b.textContent = "Aggiorno…";
+      const prima = (await (await fetch("/config")).json()).versione;
+      setInterval(async () => {
+        try { if ((await (await fetch("/ping")).json()).versione !== prima) location.reload(); } catch {}
+      }, 5000);
+    }
+  };
   document.getElementById("installa").onclick = () => azione("installa", "/installa-claude", "Installo… (un paio di minuti)");
   document.getElementById("collega").onclick = () => azione("collega", "/collega-claude", "Apro la finestra…");
   f.onsubmit = async (e) => {
