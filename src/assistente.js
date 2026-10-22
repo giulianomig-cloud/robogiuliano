@@ -11,8 +11,11 @@ const aggiorna = require("./aggiorna");
 const abbonamento = require("./abbonamento");
 const navigatore = require("./navigatore");
 const assistenza = require("./assistenza");
-const PAGINA = require("./pagina.html");
-const IMPOSTAZIONI = require("./impostazioni.html");
+// Le immagini hanno nel nome la versione (".webp?v=1.7.2"): dopo un aggiornamento Edge non può mostrare quelle vecchie
+// che tiene in memoria.
+const conVersione = (html) => html.replace(/\.webp"/g, `.webp?v=${require("./aggiorna").VERSIONE}"`);
+const PAGINA = conVersione(require("./pagina.html"));
+const IMPOSTAZIONI = conVersione(require("./impostazioni.html"));
 // Le pose di RoboGiuliano (la bocca ha tre posizioni: aperta, a metà, chiusa).
 const IMMAGINI = {};
 IMMAGINI["/robo-riposo.webp"] = require("./robo-riposo.webp");

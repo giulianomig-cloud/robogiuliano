@@ -286,7 +286,7 @@
     // I personaggi robot (RoboGiuliano, RoboYaymaris) hanno lo stesso stile: cambiano le foto e i colori.
     document.documentElement.dataset.tema = pers.file ? "robo" : tema;
     document.documentElement.dataset.personaggio = tema;
-    if (pers.file) document.querySelectorAll(".robo img").forEach((i) => (i.src = `/${pers.file}-${i.dataset.f}.webp`));
+    if (pers.file) document.querySelectorAll(".robo img").forEach((i) => (i.src = `/${pers.file}-${i.dataset.f}.webp?v=${c.versione || ""}`));
     usaNome(parametri.get("nome") || c.nomeAssistente || pers.nome);
     tipoVoce = parametri.get("voce") || (c.voce && c.voce !== "auto" ? c.voce : pers.voce);
     scegliVoce();
