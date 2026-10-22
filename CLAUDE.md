@@ -105,6 +105,8 @@
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
 ## Stato (22/10/2026, v1.7.0)
+- Dopo la 1.7 (da pubblicare): le immagini avevano `Cache-Control: max-age=86400` e stessi nomi di file → Edge mostrava per
+  un giorno gli avatar VECCHI. Ora `no-cache`. Rimedio immediato sul PC: Ctrl+F5 nella finestra.
 - v1.7.0: barra per scegliere il personaggio + cambio a voce + risponde a tutti i nomi, icona fissa "Assistente".
   Da verificare sul PC vero: il collegamento sul desktop rifatto da solo dopo l'aggiornamento.
 - v1.5.2: sul PC vero con la 1.5.1 la bocca NON si apriva (le parole del karaoke invece si colorano: causa non trovata).

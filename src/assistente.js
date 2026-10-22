@@ -507,7 +507,7 @@ function avviaServer() {
       if (req.method === "GET" && url === "/ping") return json({ ok: true, versione: aggiorna.VERSIONE });
       if (req.method === "GET" && url === "/") return html(leggiConfig() ? PAGINA : IMPOSTAZIONI);
       if (req.method === "GET" && url === "/impostazioni") return html(IMPOSTAZIONI);
-      if (req.method === "GET" && IMMAGINI[url]) { res.writeHead(200, { "Content-Type": "image/webp", "Cache-Control": "max-age=86400" }); return res.end(Buffer.from(IMMAGINI[url], "base64")); }
+      if (req.method === "GET" && IMMAGINI[url]) { res.writeHead(200, { "Content-Type": "image/webp", "Cache-Control": "no-cache" }); return res.end(Buffer.from(IMMAGINI[url], "base64")); }
       if (req.method === "GET" && url === "/config") {
         const c = leggiConfig() || {};
         return json({ versione: aggiorna.VERSIONE, avvioAutomatico: c.avvioAutomatico !== false, tema: c.tema || "allegra", nomeAssistente: c.nomeAssistente || "", voce: c.voce || "auto", nome: c.nome || "", email: c.email || "", emailFiglio: c.emailFiglio || "", haPassword: !!c.password, haChiave: !!c.apiKey, modo: c.modo || "chiave", haToken: !!c.tokenAbbonamento, usiUtente: c.usiUtente || "", haUsi: !!c.usiPassword,
