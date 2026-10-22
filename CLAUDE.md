@@ -108,7 +108,7 @@
 - v1.7.1: le immagini avevano `Cache-Control: max-age=86400` e stessi nomi di file → Edge mostrava per
   un giorno gli avatar VECCHI. Ora `no-cache`. Rimedio immediato sul PC: Ctrl+F5 nella finestra.
 - v1.7.0: barra per scegliere il personaggio + cambio a voce + risponde a tutti i nomi, icona fissa "Assistente".
-  Da verificare sul PC vero: il collegamento sul desktop rifatto da solo dopo l'aggiornamento.
+  Dal registro del PC vero (22/10): aggiornamento 1.5.1 → 1.7.0 automatico all'accensione e "collegamento sul desktop rifatto".
 - v1.5.2: sul PC vero con la 1.5.1 la bocca NON si apriva (le parole del karaoke invece si colorano: causa non trovata).
   Su richiesta di Giuliano ("se più sicuro rimettilo come era") la bocca è tornata come prima della 1.5: si apre e chiude a
   ritmo fisso mentre parla (keyframes `bocca`, `bocca-meta`, `bocca-chiusa`). `diciParola`/`data-bocca` restano solo per
@@ -123,8 +123,11 @@
 - Giuliano preferisce raccogliere più modifiche e pubblicarle insieme quando dice "pubblica": nel frattempo lavorare sul
   branch `in-corso` (il workflow pubblica solo da `main`).
 - Sul PC vero (Windows) Giuliano conferma che "sembra funzionare tutto": posta Yahoo, abbonamento Claude, impostazioni.
-- Da verificare sul PC vero: referti sul sito USI vero, stampa PDF (serve Acrobat Reader), aggiornamento automatico
-  (dalla 1.0.0 non era partito da solo: aggiornato a mano; causa non ancora trovata, chiedere `registro.txt`).
+- Registro del PC vero (arrivato per email il 21/10, "ci sono stati degli errori"): gli aggiornamenti automatici FUNZIONANO
+  (1.0.0→1.2.1→1.2.2→1.3.0→1.4.0→1.5.1→1.7.0, di solito un minuto dopo l'accensione). Errori del 21/10 mattina = prove delle
+  impostazioni ancora vuote (password/chiave mancanti, "Not logged in") e stampa del PDF delle ricette fallita: sul PC
+  della madre NON c'è un lettore PDF che sappia stampare (né SumatraPDF né Acrobat).
+- Da verificare sul PC vero: referti sul sito USI vero, stampa PDF (prima va installato SumatraPDF o Acrobat Reader).
 - Bug corretti dal PC vero: v1.2.2 il pulsante "Collega il mio account Claude" (`start` prendeva il titolo per il programma).
 
 ## Come lavorare
