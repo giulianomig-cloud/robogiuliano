@@ -247,7 +247,7 @@
   [data-tema="robo"] .nastri.dietro { opacity: .75; }
   [data-tema="robo"] .nastri path { fill: none; stroke-linecap: round; transition: stroke .5s; }
   [data-tema="robo"] .nastri .alone { stroke: var(--nastro); stroke-width: 18; opacity: .22; filter: blur(7px); }
-  [data-tema="robo"] .nastri .filo { stroke: var(--nastro); stroke-width: 5; stroke-dasharray: 200 150; filter: drop-shadow(0 0 6px var(--nastro)) drop-shadow(0 0 14px var(--nastro));
+  [data-tema="robo"] .nastri .filo { stroke: var(--nastro); stroke-width: 5; stroke-dasharray: 200 150;
     animation: scorre var(--giro) linear infinite; }
   [data-tema="robo"] .nastri .f2 { stroke-dasharray: 140 210; stroke-width: 4; animation-duration: calc(var(--giro) * .8); animation-direction: reverse; }
   [data-tema="robo"] .nastri .f3 { stroke-dasharray: 120 230; stroke-width: 3; opacity: .8; animation-duration: calc(var(--giro) * 1.3); }
@@ -256,8 +256,9 @@
   [data-personaggio="yaymaris"] .nastri .f2 { stroke: #c9a6ff; }
   [data-tema="robo"] body.pensa .nastri { --giro: 1.6s; }
   [data-tema="robo"] body.ascolto .nastri { --giro: 3s; }
-  [data-tema="robo"] body.parla .nastri .filo { transition: filter .08s; }
-  [data-tema="robo"] body.parla[data-bocca="2"] .nastri .filo { filter: drop-shadow(0 0 9px var(--nastro)) drop-shadow(0 0 22px var(--nastro)) brightness(1.4); }
+  /* niente ombre sui fili che scorrono: ridisegnarle a ogni istante teneva occupato il processore (83% → 11%) */
+  [data-tema="robo"] body.parla .nastri .filo { transition: stroke-width .08s; }
+  [data-tema="robo"] body.parla[data-bocca="2"] .nastri .filo { stroke-width: 7; }
   [data-tema="robo"] body[data-umore="contenta"] .nastri, [data-tema="robo"] body[data-umore="contenta"] .nastri .f2 { --nastro: #46eb8c; stroke: #46eb8c; }
   [data-tema="robo"] body[data-umore="triste"] .nastri, [data-tema="robo"] body[data-umore="triste"] .nastri .f2 { --nastro: #ff8c28; stroke: #ff8c28; }
   [data-tema="robo"] body[data-umore="sorpresa"] .nastri, [data-tema="robo"] body[data-umore="sorpresa"] .nastri .f2 { --nastro: #ffd746; stroke: #ffd746; }

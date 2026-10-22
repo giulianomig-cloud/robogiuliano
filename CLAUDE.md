@@ -113,6 +113,9 @@
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
 ## Stato (22/10/2026, v1.8.0)
+- Da pubblicare (branch `in-corso`): nastri di luce più leggeri (scelta "A"): tolto il `drop-shadow` dai fili che scorrono
+  (`.nastri .filo`), resta l'alone sfocato fermo. Misurato a riposo coi robot: CPU della pagina 83% → 11% di un processore
+  (Aurora 5%). Mentre parla i fili si ingrossano invece di illuminarsi con il filtro.
 - Da pubblicare (branch `in-corso`): report dei consumi SENZA dollari (Giuliano: "togli il costo in dollari, dammi solo
   quanto utilizzo"). Ogni domanda scrive in `consumi.jsonl` token (entrata + cache + uscita: `tokenDi` / `usage` di Claude Code)
   e secondi di lavoro di Claude; `riassuntoConsumi` = oggi / ultimi 7 giorni / questo mese / mese scorso con domande, token,
