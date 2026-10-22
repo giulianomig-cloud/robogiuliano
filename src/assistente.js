@@ -212,7 +212,15 @@ function segnaAttivita(nome) {
   if (a) attivita = { testo: a[1], icona: a[2], dove: a[3] };
 }
 
+// Ogni strumento scrive nel registro quanto ci ha messo (per capire dove si perde tempo).
 async function eseguiStrumento(nome, input, cfg, conv, testoUtente) {
+  const t0 = Date.now();
+  try { return await eseguiStrumentoVero(nome, input, cfg, conv, testoUtente); }
+  finally { log(`tempo: strumento ${nome} ${secondi(t0)}`); }
+}
+const secondi = (t0) => `${((Date.now() - t0) / 1000).toFixed(1)} s`;
+
+async function eseguiStrumentoVero(nome, input, cfg, conv, testoUtente) {
   segnaAttivita(nome);
   const p = posta.crea(cfg);
   switch (nome) {
@@ -307,7 +315,9 @@ async function chiedi(testoUtente) {
       richiesta.betas = ["server-side-fallback-2026-07-01"];
       richiesta.fallbacks = "default";
     }
+    const tClaude = Date.now();
     const risposta = await client.beta.messages.create(richiesta);
+    log(`tempo: Claude (chiave) ${secondi(tClaude)}`);
 
     if (risposta.stop_reason === "refusal") {
       conv.messaggi.push({ role: "assistant", content: risposta.content.length ? risposta.content : [{ type: "text", text: "Mi dispiace, con questo non posso aiutarti." }] });
@@ -346,6 +356,7 @@ async function chiediConAbbonamento(cfg, conv, testoUtente) {
     onStrumento: (nome) => segnaAttivita(nome.replace(/^mcp__posta__/, "")),
   });
   conv.sessione = r.sessione;
+  if (r.tempi) log(`tempo: Claude Code partito in ${r.tempi.avvio} · pensato ${r.tempi.claude} · totale ${r.tempi.totale}${r.tempi.costo ? ` · costo $${r.tempi.costo}` : ""}`);
   return r.testo || "Fatto.";
 }
 
@@ -562,7 +573,9 @@ function avviaServer() {
         log("lei:", testo);
         let risposta;
         attivita = null;
+        const tDomanda = Date.now();
         try { risposta = await chiedi(String(testo || "").slice(0, 2000)); } catch (e) { log("chiedi", e); risposta = spiegaErrore(e); }
+        log(`tempo: risposta completa ${secondi(tDomanda)}`);
         attivita = null;
         log("claude:", risposta);
         return json({ risposta });

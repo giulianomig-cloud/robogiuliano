@@ -105,6 +105,10 @@
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
 ## Stato (22/10/2026, v1.7.2)
+- Da pubblicare (branch `in-corso`): tempi nel registro (righe "tempo: …": risposta completa, ogni strumento, Claude con chiave,
+  Claude Code partito/pensato/totale/costo da `duration_api_ms`/`total_cost_usd`). Scopo: decidere se tenere Claude Code
+  sempre acceso (Giuliano: "aggiungi al registro per ora"). Proposto anche: avviso immediato IMAP IDLE per le email
+  "assistenza"/"registro" (oggi controllo ogni 5 min) e frase "Un attimo, guardo la posta…" mentre lavora: non ancora decisi.
 - v1.7.1: le immagini avevano `Cache-Control: max-age=86400` e stessi nomi di file → Edge mostrava per
   un giorno gli avatar VECCHI. Ora `no-cache`. Rimedio immediato sul PC: Ctrl+F5 nella finestra.
 - v1.7.2 (foto vecchie ancora visibili sul PC con la 1.7.1: `no-cache` non basta, Edge usa la copia vecchia finché non scade):

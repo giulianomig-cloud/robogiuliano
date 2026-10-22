@@ -80,3 +80,13 @@ test("mentre lavora dice quale strumento usa (per scrivere \"Sto cercando su int
   assert.match(r.testo, /^RISPOSTA /);
   assert.strictEqual(r.sessione, "sessione-1");
 });
+
+test("dice nel registro quanto ci mette (partenza, pensiero, totale)", async () => {
+  const abbonamento = require("../src/abbonamento");
+  const r = await abbonamento.chiedi({
+    cfg: { claudePath: claudeFinto() }, testo: "ciao", sistema: "prova", mcp: { command: "x", args: [] },
+    cartella: fs.mkdtempSync(path.join(os.tmpdir(), "abb-")),
+  });
+  assert.match(r.tempi.avvio, /^\d+\.\d s$/);
+  assert.match(r.tempi.totale, /^\d+\.\d s$/);
+});

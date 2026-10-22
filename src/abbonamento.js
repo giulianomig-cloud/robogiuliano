@@ -69,8 +69,11 @@ async function chiedi({ cfg, testo, sistema, sessione, mcp, cartella, onStrument
   if (cfg.tokenAbbonamento) env.CLAUDE_CODE_OAUTH_TOKEN = cfg.tokenAbbonamento;
 
   const leggi = (riga) => { try { return JSON.parse(riga); } catch { return null; } };
+  const t0 = Date.now();
+  let tPartito = null;
   const onRiga = (riga) => {
     const m = leggi(riga);
+    if (m && tPartito === null) tPartito = Date.now();   // la prima riga: Claude Code è partito
     if (m && m.type === "assistant" && m.message && Array.isArray(m.message.content)) {
       for (const c of m.message.content) if (c.type === "tool_use") onStrumento(c.name);
     }
@@ -84,7 +87,14 @@ async function chiedi({ cfg, testo, sistema, sessione, mcp, cartella, onStrument
     if (/limit|usage|credit|quota|429/i.test(testoErrore)) throw new ErroreAbbonamento("limite", testoErrore);
     throw new ErroreAbbonamento("altro", testoErrore || `uscita ${codice}`);
   }
-  return { testo: String(r.result || "").trim(), sessione: r.session_id };
+  const sec = (ms) => `${(ms / 1000).toFixed(1)} s`;
+  const tempi = {
+    avvio: tPartito ? sec(tPartito - t0) : "?",
+    claude: r.duration_api_ms ? sec(r.duration_api_ms) : "?",
+    totale: sec(Date.now() - t0),
+    costo: typeof r.total_cost_usd === "number" ? r.total_cost_usd.toFixed(3) : null,
+  };
+  return { testo: String(r.result || "").trim(), sessione: r.session_id, tempi };
 }
 
 // Installa Claude Code con l'installatore ufficiale (solo Windows).
