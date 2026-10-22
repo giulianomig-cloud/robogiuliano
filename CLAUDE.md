@@ -104,10 +104,10 @@
   `releases/latest/download/versione.json` e si aggiorna da solo (`src/aggiorna.js`).
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
-## Stato (22/10/2026, v1.7.1)
+## Stato (22/10/2026, v1.7.2)
 - v1.7.1: le immagini avevano `Cache-Control: max-age=86400` e stessi nomi di file → Edge mostrava per
   un giorno gli avatar VECCHI. Ora `no-cache`. Rimedio immediato sul PC: Ctrl+F5 nella finestra.
-- Dopo la 1.7.1 (foto vecchie ancora visibili sul PC: `no-cache` non basta, Edge usa la copia vecchia finché non scade):
+- v1.7.2 (foto vecchie ancora visibili sul PC con la 1.7.1: `no-cache` non basta, Edge usa la copia vecchia finché non scade):
   gli indirizzi delle immagini hanno la versione (`.webp?v=…`, `conVersione` in assistente.js) → a ogni versione sono nuovi.
 - v1.7.0: barra per scegliere il personaggio + cambio a voce + risponde a tutti i nomi, icona fissa "Assistente".
   Dal registro del PC vero (22/10): aggiornamento 1.5.1 → 1.7.0 automatico all'accensione e "collegamento sul desktop rifatto".
