@@ -91,7 +91,7 @@
   disegnati in SVG (`.nastri.dietro` sotto le immagini, `.nastri.davanti` sopra, 3 ellissi): colori del personaggio, più veloci
   quando ascolta/pensa, si accendono a ritmo quando parla, verdi/arancioni/gialli con le emozioni.
 
-- Scelta del personaggio (dopo la 1.6, da pubblicare): barra in alto a destra sulla pagina principale con le 3 facce
+- Scelta del personaggio (v1.7): barra in alto a destra sulla pagina principale con le 3 facce
   (`#scelta`, immagini `faccia-allegra|robo|yaymaris.webp`), tocco → `POST /personaggio` (salva `tema`, azzera
   `nomeAssistente` e la conversazione) e "Eccomi! Sono …". A voce: "passa a / cambia con / fammi parlare con / voglio / torna"
   + nome (`personaggioChiesto`). La parola per svegliarlo accetta SEMPRE tutti e tre i nomi (`usaNome` unisce le regex).
@@ -104,7 +104,9 @@
   `releases/latest/download/versione.json` e si aggiorna da solo (`src/aggiorna.js`).
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
-## Stato (22/10/2026, v1.6.0)
+## Stato (22/10/2026, v1.7.0)
+- v1.7.0: barra per scegliere il personaggio + cambio a voce + risponde a tutti i nomi, icona fissa "Assistente".
+  Da verificare sul PC vero: il collegamento sul desktop rifatto da solo dopo l'aggiornamento.
 - v1.5.2: sul PC vero con la 1.5.1 la bocca NON si apriva (le parole del karaoke invece si colorano: causa non trovata).
   Su richiesta di Giuliano ("se più sicuro rimettilo come era") la bocca è tornata come prima della 1.5: si apre e chiude a
   ritmo fisso mentre parla (keyframes `bocca`, `bocca-meta`, `bocca-chiusa`). `diciParola`/`data-bocca` restano solo per
