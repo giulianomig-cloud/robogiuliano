@@ -69,7 +69,8 @@
   .pers:has(input:checked) { border-color: var(--oro); box-shadow: 0 0 0 3px #f5dfae; }
   .pers:has(input:checked)::after { content: "✓"; position: absolute; top: 8px; right: 10px; width: 24px; height: 24px; border-radius: 50%; background: var(--oro); color: #1d1a16; font-size: 14px; display: grid; place-items: center; }
   .consumi { border-collapse: collapse; width: 100%; max-width: 460px; margin: 6px 0; }
-  .consumi td { padding: 7px 10px; border-bottom: 1px solid var(--linea); }
+  .consumi td, .consumi th { padding: 7px 10px; border-bottom: 1px solid var(--linea); }
+  .consumi th { font-size: 14px; color: var(--tenue); font-weight: 600; text-align: right; }
   .consumi td:nth-child(n+2) { text-align: right; font-variant-numeric: tabular-nums; }
   .due { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 16px; }
 
@@ -151,7 +152,7 @@
     </div></section><section class="sezione" id="s-programma"><h2><span class="em">⚙️</span>Programma<span class="stato" data-stato="programma"></span></h2><p class="intro">Avvio, aggiornamenti e consumi di Claude.</p>
     <label class="spunta"><input name="avvioAutomatico" type="checkbox" checked> Apri da solo all'accensione di questo computer</label>
     <small style="margin-left:58px">Toglila se lo stai solo provando sul tuo computer.</small>
-    <p style="margin:18px 0 6px"><b>Consumi di Claude</b><small id="consumiModo"></small></p>
+    <p style="margin:18px 0 6px"><b>Quanto lavora Claude</b><small>Token = pezzetti di testo letti e scritti da Claude: sono quelli che consumano l'abbonamento.</small></p>
     <table id="consumi" class="consumi"></table>
     <small>Per riceverli per email: scrivi alla casella della mamma con oggetto <b>consumi</b>.</small>
     <p id="versione" translate="no" style="margin:18px 0 6px;color:var(--tenue)"></p>
@@ -281,17 +282,17 @@
     }
   }
   aggiornaLuci();
-  // Consumi: domande e dollari per periodo.
+  // Consumi: domande, token e minuti di lavoro di Claude per periodo.
   fetch("/consumi").then((r) => r.json()).then((c) => {
-    document.getElementById("consumiModo").textContent = c.modo === "abbonamento"
-      ? "Con l'abbonamento è un costo stimato: si scala dai limiti dell'abbonamento, non si paga a parte."
-      : "Con la chiave API è quello che si paga davvero.";
     const t = document.getElementById("consumi");
+    const testata = t.insertRow();
+    for (const h of ["", "Domande", "Token", "Lavoro"]) { const th = document.createElement("th"); th.textContent = h; testata.appendChild(th); }
     for (const p of c.periodi) {
       const tr = t.insertRow();
       tr.insertCell().textContent = p.nome[0].toUpperCase() + p.nome.slice(1);
-      tr.insertCell().textContent = p.domande + (p.domande === 1 ? " domanda" : " domande");
-      tr.insertCell().textContent = "$" + p.costo.toFixed(2);
+      tr.insertCell().textContent = p.domande;
+      tr.insertCell().textContent = p.tokenTesto;
+      tr.insertCell().textContent = p.minuti.toLocaleString("it-IT") + " min";
     }
   }).catch(() => {});
   // Un campo obbligatorio vuoto in un'altra scheda: si va a quella scheda, così si vede cosa manca.

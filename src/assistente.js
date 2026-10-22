@@ -213,31 +213,20 @@ function segnaAttivita(nome) {
   if (a) attivita = { testo: a[1], icona: a[2], dove: a[3] };
 }
 
-// ---------- Consumi di Claude ----------
-// Prezzi in dollari per milione di token: entrata, uscita, lettura dalla cache, scrittura nella cache.
-const PREZZI = {
-  "claude-opus-5-5": [4, 20, 0.2, 5],
-  "claude-opus-5": [5, 25, 0.5, 6.25],
-  "claude-opus-4-8": [5, 25, 0.5, 6.25],
-  "claude-sonnet-5-5": [2, 10, 0.2, 2.5],
-  "claude-fable-5-1": [10, 50, 0.25, 12.5],
-};
-function costoDi(modello, u) {
-  const [inp, out, letta, scritta] = PREZZI[modello] || PREZZI["claude-opus-5-5"];
-  return ((u.input_tokens || 0) * inp + (u.output_tokens || 0) * out +
-    (u.cache_read_input_tokens || 0) * letta + (u.cache_creation_input_tokens || 0) * scritta) / 1e6;
-}
-let consumo = null;   // quello della domanda in corso: { costo, entrata, uscita }
-function aggiungiConsumo(costo, entrata, uscita) {
+// ---------- Consumi di Claude (quanto lavoro fa, non i dollari) ----------
+// Per ogni domanda: i token letti e scritti da Claude e i secondi in cui ha lavorato.
+const tokenDi = (u) => (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.output_tokens || 0);
+let consumo = null;   // quello della domanda in corso: { token, secondi }
+function aggiungiConsumo(token, secondi) {
   if (!consumo) return;
-  consumo.costo += costo || 0; consumo.entrata += entrata || 0; consumo.uscita += uscita || 0;
+  consumo.token += token || 0; consumo.secondi += secondi || 0;
 }
 function salvaConsumo(modo) {
   if (!consumo) return;
-  try { fs.appendFileSync(CONSUMI, JSON.stringify({ t: new Date().toISOString(), modo, ...consumo, costo: +consumo.costo.toFixed(5) }) + "\n"); } catch (e) { log("consumi", e); }
+  try { fs.appendFileSync(CONSUMI, JSON.stringify({ t: new Date().toISOString(), modo, token: consumo.token, secondi: +consumo.secondi.toFixed(1) }) + "\n"); } catch (e) { log("consumi", e); }
   consumo = null;
 }
-// Riassunto: oggi, ultimi 7 giorni, questo mese, mese scorso (domande e dollari).
+// Riassunto: oggi, ultimi 7 giorni, questo mese, mese scorso (domande, token, minuti di lavoro di Claude).
 function riassuntoConsumi(adesso = new Date()) {
   let righe = [];
   try { righe = fs.readFileSync(CONSUMI, "utf8").split("\n").filter(Boolean).map((r) => JSON.parse(r)); } catch {}
@@ -250,13 +239,19 @@ function riassuntoConsumi(adesso = new Date()) {
   ];
   return periodi.map(([nome, da, a]) => {
     const r = righe.filter((x) => { const t = new Date(x.t); return t >= da && (nome === "mese scorso" ? t < a : t <= a); });
-    return { nome, domande: r.length, costo: +r.reduce((s, x) => s + (x.costo || 0), 0).toFixed(2) };
+    const somma = (k) => r.reduce((s, x) => s + (x[k] || 0), 0);
+    return { nome, domande: r.length, token: somma("token"), minuti: Math.round(somma("secondi") / 6) / 10 };
   });
 }
-function testoConsumi(cfg) {
-  const modo = cfg && cfg.modo === "abbonamento" ? "abbonamento (costo stimato da Claude Code: si scala dai limiti dell'abbonamento, non si paga a parte)" : "chiave API (costo vero, a consumo)";
-  return `Consumi dell'assistente — collegamento: ${modo}\n\n` +
-    riassuntoConsumi().map((p) => `${p.nome}: ${p.domande} domande, $${p.costo.toFixed(2)}`).join("\n");
+// "1,2 milioni" / "350 mila" / "800"
+function quantiToken(n) {
+  if (n >= 1e6) return `${(n / 1e6).toLocaleString("it-IT", { maximumFractionDigits: 1 })} milioni`;
+  if (n >= 1e3) return `${Math.round(n / 1e3)} mila`;
+  return String(n);
+}
+function testoConsumi() {
+  return "Quanto lavora Claude per l'assistente\n(token = pezzetti di testo letti e scritti da Claude: sono quelli che consumano l'abbonamento)\n\n" +
+    riassuntoConsumi().map((p) => `${p.nome}: ${p.domande} domande · ${quantiToken(p.token)} di token · ${p.minuti.toLocaleString("it-IT")} minuti di lavoro`).join("\n");
 }
 
 // La striscia colorata in alto nella finestra quando qualcosa non va (rosso = serio, arancio = da sistemare).
@@ -270,7 +265,7 @@ const AVVISI = [
 ];
 function avvisoDa(e) {
   if (e instanceof abbonamento.ErroreAbbonamento && e.tipo === "accesso") return { tipo: "rosso", icona: "🔑", testo: "Il collegamento a Claude non funziona", sotto: "Serve l'aiuto di tuo figlio." };
-  if (e instanceof abbonamento.ErroreAbbonamento && e.tipo === "limite") return { tipo: "arancio", icona: "⏳", testo: "Il credito del mese è finito", sotto: "Serve l'aiuto di tuo figlio." };
+  if (e instanceof abbonamento.ErroreAbbonamento && e.tipo === "limite") return { tipo: "arancio", icona: "⏳", testo: "Ho usato tutto l'abbonamento per ora", sotto: "Riprova tra qualche ora. Se succede spesso, avvisa tuo figlio." };
   if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) return { tipo: "rosso", icona: "🔑", testo: "Il collegamento a Claude non funziona", sotto: "Serve l'aiuto di tuo figlio." };
   if (e instanceof Anthropic.APIConnectionError) return { tipo: "rosso", icona: "📶", testo: "Internet non funziona", sotto: "Controlla che il modem sia acceso, poi riprova." };
   const a = AVVISI.find(([re]) => re.test(String(e && (e.message || e))));
@@ -384,7 +379,7 @@ async function chiedi(testoUtente) {
     const tClaude = Date.now();
     const risposta = await client.beta.messages.create(richiesta);
     log(`tempo: Claude (chiave) ${secondi(tClaude)}`);
-    if (risposta.usage) aggiungiConsumo(costoDi(risposta.model, risposta.usage), risposta.usage.input_tokens, risposta.usage.output_tokens);
+    if (risposta.usage) aggiungiConsumo(tokenDi(risposta.usage), (Date.now() - tClaude) / 1000);
 
     if (risposta.stop_reason === "refusal") {
       conv.messaggi.push({ role: "assistant", content: risposta.content.length ? risposta.content : [{ type: "text", text: "Mi dispiace, con questo non posso aiutarti." }] });
@@ -423,8 +418,8 @@ async function chiediConAbbonamento(cfg, conv, testoUtente) {
     onStrumento: (nome) => segnaAttivita(nome.replace(/^mcp__posta__/, "")),
   });
   conv.sessione = r.sessione;
-  aggiungiConsumo(r.costo, r.entrata, r.uscita);
-  if (r.tempi) log(`tempo: Claude Code partito in ${r.tempi.avvio} · pensato ${r.tempi.claude} · totale ${r.tempi.totale}${r.tempi.costo ? ` · costo $${r.tempi.costo}` : ""}`);
+  aggiungiConsumo(r.token, r.secondi);
+  if (r.tempi) log(`tempo: Claude Code partito in ${r.tempi.avvio} · pensato ${r.tempi.claude} · totale ${r.tempi.totale} · ${r.token} token`);
   return r.testo || "Fatto.";
 }
 
@@ -586,7 +581,7 @@ function avviaServer() {
     if (origine && origine !== `http://127.0.0.1:${PORTA}`) return json({ errore: "vietato" }, 403);
     try {
       const url = req.url.split("?")[0];
-      if (req.method === "GET" && url === "/consumi") return json({ periodi: riassuntoConsumi(), modo: (leggiConfig() || {}).modo || "chiave" });
+      if (req.method === "GET" && url === "/consumi") return json({ periodi: riassuntoConsumi().map((p) => ({ ...p, tokenTesto: quantiToken(p.token) })) });
       if (req.method === "GET" && url === "/attivita") return json(attivita || {});
       if (req.method === "GET" && url === "/ping") return json({ ok: true, versione: aggiorna.VERSIONE });
       if (req.method === "GET" && url === "/") return html(leggiConfig() ? PAGINA : IMPOSTAZIONI);
@@ -644,7 +639,7 @@ function avviaServer() {
         let risposta;
         attivita = null;
         avviso = null;
-        consumo = { costo: 0, entrata: 0, uscita: 0 };
+        consumo = { token: 0, secondi: 0 };
         const tDomanda = Date.now();
         try { risposta = await chiedi(String(testo || "").slice(0, 2000)); } catch (e) { log("chiedi", e); risposta = spiegaErrore(e); avviso = avvisoDa(e) || avviso; }
         log(`tempo: risposta completa ${secondi(tDomanda)}`);
@@ -703,4 +698,4 @@ async function main() {
   setTimeout(() => process.exit(0), 500);
 }
 
-module.exports = { main, chiedi, STRUMENTI, avviaServer, eseguiStrumento, nuovaConversazione, SI, avvisoDa, costoDi, riassuntoConsumi, testoConsumi };
+module.exports = { main, chiedi, STRUMENTI, avviaServer, eseguiStrumento, nuovaConversazione, SI, avvisoDa, tokenDi, riassuntoConsumi, testoConsumi, quantiToken };

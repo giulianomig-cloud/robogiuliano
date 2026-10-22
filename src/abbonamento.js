@@ -92,12 +92,11 @@ async function chiedi({ cfg, testo, sistema, sessione, mcp, cartella, onStrument
     avvio: tPartito ? sec(tPartito - t0) : "?",
     claude: r.duration_api_ms ? sec(r.duration_api_ms) : "?",
     totale: sec(Date.now() - t0),
-    costo: typeof r.total_cost_usd === "number" ? r.total_cost_usd.toFixed(3) : null,
   };
   const u = r.usage || {};
   return { testo: String(r.result || "").trim(), sessione: r.session_id, tempi,
-    costo: typeof r.total_cost_usd === "number" ? r.total_cost_usd : 0,
-    entrata: (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0), uscita: u.output_tokens || 0 };
+    token: (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.output_tokens || 0),
+    secondi: (r.duration_api_ms || 0) / 1000 };
 }
 
 // Installa Claude Code con l'installatore ufficiale (solo Windows).
@@ -136,7 +135,7 @@ function apriCollegamento(cfg, cartella = os.tmpdir()) {
 function spiegaErrore(e) {
   switch (e.tipo) {
     case "accesso": return "Il collegamento all'abbonamento di Claude non funziona più. Serve l'aiuto di tuo figlio.";
-    case "limite": return "Per questo mese ho finito il credito dell'abbonamento. Serve l'aiuto di tuo figlio.";
+    case "limite": return "Ho usato tutto l'abbonamento per ora. Riprova tra qualche ora; se succede spesso, avvisa tuo figlio.";
     case "mancante": return "Manca un pezzo del programma. Serve l'aiuto di tuo figlio.";
     case "tempo": return "Ci ho messo troppo a rispondere. Riprova tra poco.";
     default: return "Claude in questo momento non risponde. Riprova tra poco.";
