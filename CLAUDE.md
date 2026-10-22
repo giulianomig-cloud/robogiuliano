@@ -90,6 +90,12 @@
   disegnati in SVG (`.nastri.dietro` sotto le immagini, `.nastri.davanti` sopra, 3 ellissi): colori del personaggio, più veloci
   quando ascolta/pensa, si accendono a ritmo quando parla, verdi/arancioni/gialli con le emozioni.
 
+- Scelta del personaggio (dopo la 1.6, da pubblicare): barra in alto a destra sulla pagina principale con le 3 facce
+  (`#scelta`, immagini `faccia-allegra|robo|yaymaris.webp`), tocco → `POST /personaggio` (salva `tema`, azzera
+  `nomeAssistente` e la conversazione) e "Eccomi! Sono …". A voce: "passa a / cambia con / fammi parlare con / voglio / torna"
+  + nome (`personaggioChiesto`). La parola per svegliarlo accetta SEMPRE tutti e tre i nomi (`usaNome` unisce le regex).
+  Icona del desktop: Giuliano vuole un'icona FISSA e neutra (proposte A tre facce, B fumetto, C Aurora con le cuffie: in attesa).
+
 ## Versioni e aggiornamenti
 - La versione è `version` in `package.json` (finisce nell'exe come `__VERSIONE__`).
 - Push su `main` → GitHub Actions (`.github/workflows/rilascio.yml`, Windows): `npm test`, costruzione, prova

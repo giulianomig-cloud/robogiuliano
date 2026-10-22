@@ -36,6 +36,10 @@ IMMAGINI["/yaymaris-contento.webp"] = require("./yaymaris-contento.webp");
 IMMAGINI["/yaymaris-dispiaciuto.webp"] = require("./yaymaris-dispiaciuto.webp");
 IMMAGINI["/yaymaris-sorpreso.webp"] = require("./yaymaris-sorpreso.webp");
 IMMAGINI["/yaymaris-occhiolino.webp"] = require("./yaymaris-occhiolino.webp");
+// Le facce piccole della barra in alto a destra, per cambiare personaggio.
+IMMAGINI["/faccia-allegra.webp"] = require("./faccia-allegra.webp");
+IMMAGINI["/faccia-robo.webp"] = require("./faccia-robo.webp");
+IMMAGINI["/faccia-yaymaris.webp"] = require("./faccia-yaymaris.webp");
 // Icone per stile: la finestra e il collegamento sul desktop usano quella dello stile scelto.
 const ICONE = {
   robo: { png: require("./icona.png"), ico: require("./icona.ico") },
@@ -527,6 +531,17 @@ function avviaServer() {
           if (cosa === "ferma") remota.ferma();
           return json({ ok: true, testo: cosa === "avvia" ? remota.avvia(c) : cosa === "ferma" ? "Assistenza da remoto chiusa." : "Si è aperta la finestra: segui le istruzioni." });
         } catch (e) { return json({ ok: false, testo: e.message }); }
+      }
+      // Cambio di personaggio dalla barra in alto a destra o a voce ("passa a RoboGiuliano").
+      if (req.method === "POST" && url === "/personaggio") {
+        const { tema } = await corpo(req), c = leggiConfig();
+        if (!c || !NOMI[tema]) return json({ ok: false }, 400);
+        c.tema = tema;
+        c.nomeAssistente = "";   // un nome scelto a mano valeva per il personaggio di prima
+        fs.writeFileSync(CONFIG, JSON.stringify(c, null, 2));
+        conversazione = nuovaConversazione();
+        log("personaggio cambiato:", tema);
+        return json({ ok: true });
       }
       if (req.method === "POST" && url === "/nuova") { conversazione = nuovaConversazione(); return json({ ok: true }); }
       if (req.method === "POST" && url === "/chiedi") {

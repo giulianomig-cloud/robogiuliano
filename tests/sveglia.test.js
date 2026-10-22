@@ -41,3 +41,21 @@ test("RoboYaymaris: senza \"robo\" non si sveglia", () => {
   assert.strictEqual(dopo("RoboYaymaris", "ho visto Yaymaris ieri"), null);
   assert.strictEqual(dopo("RoboYaymaris", "andiamo al mare"), null);
 });
+
+// Cambio di personaggio a voce: "passa a RoboGiuliano", "fammi parlare con Aurora"…
+const codice = codicePagina();
+const personaggioChiesto = new Function(
+  codice.match(/function creaSveglia[\s\S]*?\r?\n  }\r?\n/)[0] +
+  codice.match(/const PERSONAGGI = \{[\s\S]*?\r?\n  \};\r?\n/)[0] +
+  codice.match(/function personaggioChiesto[\s\S]*?\r?\n  }\r?\n/)[0] + "return personaggioChiesto;")();
+
+test("cambio di personaggio a voce", () => {
+  assert.strictEqual(personaggioChiesto("passa a RoboGiuliano"), "robo");
+  assert.strictEqual(personaggioChiesto("cambia con robot Giuliano"), "robo");
+  assert.strictEqual(personaggioChiesto("fammi parlare con Aurora"), "allegra");
+  assert.strictEqual(personaggioChiesto("voglio RoboYaymaris"), "yaymaris");
+  assert.strictEqual(personaggioChiesto("torna Aurora"), "allegra");
+  assert.strictEqual(personaggioChiesto("leggimi la posta"), null);
+  assert.strictEqual(personaggioChiesto("passa a prendere il pane"), null);
+  assert.strictEqual(personaggioChiesto("ho parlato con Giuliano"), null);
+});

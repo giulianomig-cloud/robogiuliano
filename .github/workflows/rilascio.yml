@@ -48,7 +48,7 @@ jobs:
           if ($r.versione -ne $v) { throw "Versione sbagliata: $($r.versione) invece di $v" }
           $pagina = Invoke-WebRequest http://127.0.0.1:7777/ -UseBasicParsing
           if ($pagina.Content -notmatch 'Impostazioni') { throw "Manca la pagina delle impostazioni" }
-          foreach ($img in 'robo-riposo','robo-ascolto','robo-pensa','robo-parla','robo-parla-2','robo-parla-3','yaymaris-riposo','yaymaris-ascolto','yaymaris-pensa','yaymaris-parla','yaymaris-parla-2','yaymaris-parla-3','robo-contento','robo-dispiaciuto','robo-sorpreso','robo-occhiolino','yaymaris-contento','yaymaris-dispiaciuto','yaymaris-sorpreso','yaymaris-occhiolino') {
+          foreach ($img in 'robo-riposo','robo-ascolto','robo-pensa','robo-parla','robo-parla-2','robo-parla-3','yaymaris-riposo','yaymaris-ascolto','yaymaris-pensa','yaymaris-parla','yaymaris-parla-2','yaymaris-parla-3','robo-contento','robo-dispiaciuto','robo-sorpreso','robo-occhiolino','yaymaris-contento','yaymaris-dispiaciuto','yaymaris-sorpreso','yaymaris-occhiolino','faccia-allegra','faccia-robo','faccia-yaymaris') {
             $r2 = Invoke-WebRequest "http://127.0.0.1:7777/$img.webp" -UseBasicParsing
             if ($r2.StatusCode -ne 200 -or $r2.RawContentLength -lt 10000) { throw "Immagine mancante: $img" }
           }

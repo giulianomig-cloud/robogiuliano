@@ -32,6 +32,14 @@
   @keyframes puntini { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
   #avvia { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 24px; font-size: 40px; font-weight: 700; cursor: pointer; z-index: 5; }
   #avvia span { font-size: 120px; }
+  /* Barra in alto a destra per scegliere il personaggio */
+  #scelta { position: fixed; right: 18px; top: 16px; z-index: 3; display: flex; gap: 14px; align-items: flex-end; padding: 8px 16px 6px; border-radius: 999px;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); backdrop-filter: blur(12px); }
+  #scelta button { all: unset; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 13px; font-weight: 600; opacity: .7; color: inherit; }
+  #scelta img { width: 46px; height: 46px; border-radius: 50%; transition: width .2s, height .2s; }
+  #scelta button.si { opacity: 1; }
+  #scelta button.si img { width: 58px; height: 58px; box-shadow: 0 0 0 3px #ffd36e, 0 0 18px rgba(255,211,110,.6); }
+  @media (max-height: 820px) { #scelta img { width: 38px; height: 38px; } #scelta button.si img { width: 48px; height: 48px; } }
   #impostazioni { position: fixed; bottom: 12px; right: 16px; font-size: 15px; opacity: .5; color: inherit; }
   body > * { position: relative; z-index: 1; }
   @keyframes ruota { to { transform: rotate(360deg); } }
@@ -238,6 +246,7 @@
   <div id="detto"></div>
   <div id="risposta"></div>
   <div id="avvia"><span>👆</span>Tocca qui per iniziare</div>
+  <div id="scelta" aria-label="Chi ti risponde"><button data-tema="allegra"><img src="/faccia-allegra.webp" alt="">Aurora</button><button data-tema="robo"><img src="/faccia-robo.webp" alt="">RoboGiuliano</button><button data-tema="yaymaris"><img src="/faccia-yaymaris.webp" alt="">RoboYaymaris</button></div>
   <a id="impostazioni" href="/impostazioni">impostazioni <span id="ver" translate="no"></span></a>
 <script>
   const $ = (id) => document.getElementById(id);
@@ -253,9 +262,11 @@
     return new RegExp("(?<![\\p{L}])(?:ehi|hey|ei|ehy|ciao|ok)?\\s*(?:" + varianti + ")(?![\\p{L}])[,.!?]?\\s*", "iu");
   }
   let SVEGLIA = creaSveglia(NOME);
+  // Risponde al suo nome e anche a quelli degli altri personaggi: se il personaggio cambia, i nomi vecchi funzionano lo stesso.
   function usaNome(nome) {
     NOME = (nome || "Claude").trim() || "Claude";
-    SVEGLIA = creaSveglia(NOME);
+    const nomi = [...new Set([NOME, ...Object.values(PERSONAGGI).map((p) => p.nome)])];
+    SVEGLIA = new RegExp(nomi.map((n) => "(?:" + creaSveglia(n).source + ")").join("|"), "iu");
     document.title = "Ehi " + NOME;
     document.querySelectorAll(".nome").forEach((e) => (e.textContent = NOME));
   }
@@ -264,10 +275,14 @@
     robo: { nome: "RoboGiuliano", voce: "maschile", file: "robo" },
     yaymaris: { nome: "RoboYaymaris", voce: "femminile", file: "yaymaris" },
   };
+  let config = {};
   const pronto = fetch("/config").then((r) => r.json()).catch(() => ({})).then((c) => {
+    config = c;
     if (c.versione) $("ver").textContent = "· v" + c.versione;
-    const tema = PERSONAGGI[parametri.get("tema") || c.tema] ? parametri.get("tema") || c.tema : "allegra";
-    const pers = PERSONAGGI[tema];
+    applicaPersonaggio(PERSONAGGI[parametri.get("tema") || c.tema] ? parametri.get("tema") || c.tema : "allegra");
+  });
+  function applicaPersonaggio(tema) {
+    const c = config, pers = PERSONAGGI[tema];
     // I personaggi robot (RoboGiuliano, RoboYaymaris) hanno lo stesso stile: cambiano le foto e i colori.
     document.documentElement.dataset.tema = pers.file ? "robo" : tema;
     document.documentElement.dataset.personaggio = tema;
@@ -275,7 +290,28 @@
     usaNome(parametri.get("nome") || c.nomeAssistente || pers.nome);
     tipoVoce = parametri.get("voce") || (c.voce && c.voce !== "auto" ? c.voce : pers.voce);
     scegliVoce();
-  });
+    document.querySelectorAll("#scelta button").forEach((b) => b.classList.toggle("si", b.dataset.tema === tema));
+  }
+  // "Passa a RoboGiuliano", "cambia con Aurora", "fammi parlare con RoboYaymaris"…: quale personaggio chiede?
+  function personaggioChiesto(frase) {
+    const m = frase.match(/\b(?:passa|cambia|metti|torna|fammi parlare|voglio parlare|voglio)\b(.*)/i);
+    if (!m) return null;
+    for (const [tema, p] of Object.entries(PERSONAGGI)) if (creaSveglia(p.nome).test(m[1])) return tema;
+    return null;
+  }
+  async function cambiaPersonaggio(tema) {
+    clearTimeout(timerComando);
+    speechSynthesis.cancel();
+    try { await fetch("/personaggio", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tema }) }); } catch {}
+    config.nomeAssistente = "";   // il nome scelto nelle impostazioni valeva per il personaggio di prima
+    applicaPersonaggio(tema);
+    $("detto").textContent = "";
+    rispondi("Eccomi! Sono " + NOME + ".");
+  }
+  document.querySelectorAll("#scelta button").forEach((b) => (b.onclick = () => {
+    if (stato === "pensa" || b.classList.contains("si")) return;
+    cambiaPersonaggio(b.dataset.tema);
+  }));
   const ATTESA_COMANDO = 8000;
 
   let stato = "riposo";       // riposo | comando | pensa | parla
@@ -510,6 +546,8 @@
   }
 
   async function invia(testo) {
+    const chiesto = personaggioChiesto(testo);
+    if (chiesto) return cambiaPersonaggio(chiesto);
     clearTimeout(timerComando);
     fermaAscolto();
     $("detto").textContent = "“" + testo + "”";
