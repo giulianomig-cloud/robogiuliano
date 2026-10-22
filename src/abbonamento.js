@@ -94,7 +94,10 @@ async function chiedi({ cfg, testo, sistema, sessione, mcp, cartella, onStrument
     totale: sec(Date.now() - t0),
     costo: typeof r.total_cost_usd === "number" ? r.total_cost_usd.toFixed(3) : null,
   };
-  return { testo: String(r.result || "").trim(), sessione: r.session_id, tempi };
+  const u = r.usage || {};
+  return { testo: String(r.result || "").trim(), sessione: r.session_id, tempi,
+    costo: typeof r.total_cost_usd === "number" ? r.total_cost_usd : 0,
+    entrata: (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0), uscita: u.output_tokens || 0 };
 }
 
 // Installa Claude Code con l'installatore ufficiale (solo Windows).

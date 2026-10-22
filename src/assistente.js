@@ -55,6 +55,7 @@ const DIR = process.platform === "win32"
   : path.join(os.homedir(), ".assistente-claude");
 const CONFIG = path.join(DIR, "config.json");
 const LOG = path.join(DIR, "registro.txt");
+const CONSUMI = path.join(DIR, "consumi.jsonl");   // una riga per ogni domanda: quando, come, quanto è costata
 const MODELLO_PREDEFINITO = "claude-opus-5-5";
 const PAUSA_NUOVA_CONVERSAZIONE = 10 * 60 * 1000;
 const MAX_MESSAGGI = 40;
@@ -212,6 +213,52 @@ function segnaAttivita(nome) {
   if (a) attivita = { testo: a[1], icona: a[2], dove: a[3] };
 }
 
+// ---------- Consumi di Claude ----------
+// Prezzi in dollari per milione di token: entrata, uscita, lettura dalla cache, scrittura nella cache.
+const PREZZI = {
+  "claude-opus-5-5": [4, 20, 0.2, 5],
+  "claude-opus-5": [5, 25, 0.5, 6.25],
+  "claude-opus-4-8": [5, 25, 0.5, 6.25],
+  "claude-sonnet-5-5": [2, 10, 0.2, 2.5],
+  "claude-fable-5-1": [10, 50, 0.25, 12.5],
+};
+function costoDi(modello, u) {
+  const [inp, out, letta, scritta] = PREZZI[modello] || PREZZI["claude-opus-5-5"];
+  return ((u.input_tokens || 0) * inp + (u.output_tokens || 0) * out +
+    (u.cache_read_input_tokens || 0) * letta + (u.cache_creation_input_tokens || 0) * scritta) / 1e6;
+}
+let consumo = null;   // quello della domanda in corso: { costo, entrata, uscita }
+function aggiungiConsumo(costo, entrata, uscita) {
+  if (!consumo) return;
+  consumo.costo += costo || 0; consumo.entrata += entrata || 0; consumo.uscita += uscita || 0;
+}
+function salvaConsumo(modo) {
+  if (!consumo) return;
+  try { fs.appendFileSync(CONSUMI, JSON.stringify({ t: new Date().toISOString(), modo, ...consumo, costo: +consumo.costo.toFixed(5) }) + "\n"); } catch (e) { log("consumi", e); }
+  consumo = null;
+}
+// Riassunto: oggi, ultimi 7 giorni, questo mese, mese scorso (domande e dollari).
+function riassuntoConsumi(adesso = new Date()) {
+  let righe = [];
+  try { righe = fs.readFileSync(CONSUMI, "utf8").split("\n").filter(Boolean).map((r) => JSON.parse(r)); } catch {}
+  const inizioOggi = new Date(adesso.getFullYear(), adesso.getMonth(), adesso.getDate());
+  const periodi = [
+    ["oggi", inizioOggi, adesso],
+    ["ultimi 7 giorni", new Date(inizioOggi - 6 * 864e5), adesso],
+    ["questo mese", new Date(adesso.getFullYear(), adesso.getMonth(), 1), adesso],
+    ["mese scorso", new Date(adesso.getFullYear(), adesso.getMonth() - 1, 1), new Date(adesso.getFullYear(), adesso.getMonth(), 1)],
+  ];
+  return periodi.map(([nome, da, a]) => {
+    const r = righe.filter((x) => { const t = new Date(x.t); return t >= da && (nome === "mese scorso" ? t < a : t <= a); });
+    return { nome, domande: r.length, costo: +r.reduce((s, x) => s + (x.costo || 0), 0).toFixed(2) };
+  });
+}
+function testoConsumi(cfg) {
+  const modo = cfg && cfg.modo === "abbonamento" ? "abbonamento (costo stimato da Claude Code: si scala dai limiti dell'abbonamento, non si paga a parte)" : "chiave API (costo vero, a consumo)";
+  return `Consumi dell'assistente — collegamento: ${modo}\n\n` +
+    riassuntoConsumi().map((p) => `${p.nome}: ${p.domande} domande, $${p.costo.toFixed(2)}`).join("\n");
+}
+
 // La striscia colorata in alto nella finestra quando qualcosa non va (rosso = serio, arancio = da sistemare).
 let avviso = null;
 const AVVISI = [
@@ -337,6 +384,7 @@ async function chiedi(testoUtente) {
     const tClaude = Date.now();
     const risposta = await client.beta.messages.create(richiesta);
     log(`tempo: Claude (chiave) ${secondi(tClaude)}`);
+    if (risposta.usage) aggiungiConsumo(costoDi(risposta.model, risposta.usage), risposta.usage.input_tokens, risposta.usage.output_tokens);
 
     if (risposta.stop_reason === "refusal") {
       conv.messaggi.push({ role: "assistant", content: risposta.content.length ? risposta.content : [{ type: "text", text: "Mi dispiace, con questo non posso aiutarti." }] });
@@ -375,6 +423,7 @@ async function chiediConAbbonamento(cfg, conv, testoUtente) {
     onStrumento: (nome) => segnaAttivita(nome.replace(/^mcp__posta__/, "")),
   });
   conv.sessione = r.sessione;
+  aggiungiConsumo(r.costo, r.entrata, r.uscita);
   if (r.tempi) log(`tempo: Claude Code partito in ${r.tempi.avvio} · pensato ${r.tempi.claude} · totale ${r.tempi.totale}${r.tempi.costo ? ` · costo $${r.tempi.costo}` : ""}`);
   return r.testo || "Fatto.";
 }
@@ -537,6 +586,7 @@ function avviaServer() {
     if (origine && origine !== `http://127.0.0.1:${PORTA}`) return json({ errore: "vietato" }, 403);
     try {
       const url = req.url.split("?")[0];
+      if (req.method === "GET" && url === "/consumi") return json({ periodi: riassuntoConsumi(), modo: (leggiConfig() || {}).modo || "chiave" });
       if (req.method === "GET" && url === "/attivita") return json(attivita || {});
       if (req.method === "GET" && url === "/ping") return json({ ok: true, versione: aggiorna.VERSIONE });
       if (req.method === "GET" && url === "/") return html(leggiConfig() ? PAGINA : IMPOSTAZIONI);
@@ -594,9 +644,11 @@ function avviaServer() {
         let risposta;
         attivita = null;
         avviso = null;
+        consumo = { costo: 0, entrata: 0, uscita: 0 };
         const tDomanda = Date.now();
         try { risposta = await chiedi(String(testo || "").slice(0, 2000)); } catch (e) { log("chiedi", e); risposta = spiegaErrore(e); avviso = avvisoDa(e) || avviso; }
         log(`tempo: risposta completa ${secondi(tDomanda)}`);
+        salvaConsumo((leggiConfig() || {}).modo === "abbonamento" ? "abbonamento" : "chiave");
         attivita = null;
         log("claude:", risposta);
         return json({ risposta, avviso });
@@ -634,7 +686,7 @@ async function main() {
   if (process.argv.includes("--servizio")) {
     avviaServer();
     aggiorna.avvia({ log, occupato: () => Date.now() - conversazione.ultimo < 2 * 60 * 1000, riavvia: aggiorna.riavviaServizio });
-    assistenza.crea({ leggiConfig, posta, log, fileLog: LOG, diagnosi, remota }).avvia();
+    assistenza.crea({ leggiConfig, posta, log, fileLog: LOG, diagnosi, remota, testoConsumi }).avvia();
     rifaiCollegamentoUnaVolta();
     return;
   }
@@ -651,4 +703,4 @@ async function main() {
   setTimeout(() => process.exit(0), 500);
 }
 
-module.exports = { main, chiedi, STRUMENTI, avviaServer, eseguiStrumento, nuovaConversazione, SI, avvisoDa };
+module.exports = { main, chiedi, STRUMENTI, avviaServer, eseguiStrumento, nuovaConversazione, SI, avvisoDa, costoDi, riassuntoConsumi, testoConsumi };

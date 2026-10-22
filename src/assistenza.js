@@ -3,6 +3,7 @@
 //   e la richiesta finisce nel cestino.
 // - Se ci sono errori, gli arriva il registro da solo, al massimo una volta al giorno.
 // - Con oggetto "assistenza" parte l'assistenza da remoto (Claude Code in Remote Control), se è attivata.
+// - Con oggetto "consumi" gli arriva quanto ha usato Claude (oggi, ultimi 7 giorni, questo mese, mese scorso).
 // Nel registro mandato non ci sono le conversazioni (righe "lei:" e "claude:"), a meno che non lo si scelga.
 const fs = require("fs");
 
@@ -41,7 +42,7 @@ function haErrori(testo, dopo) {
   });
 }
 
-function crea({ leggiConfig, posta, log, fileLog, diagnosi, remota, adesso = () => Date.now() }) {
+function crea({ leggiConfig, posta, log, fileLog, diagnosi, remota, testoConsumi, adesso = () => Date.now() }) {
   let ultimoAvviso = 0;
 
   async function manda(cfg, motivo) {
@@ -68,6 +69,11 @@ function crea({ leggiConfig, posta, log, fileLog, diagnosi, remota, adesso = () 
         try { testo = remota.avvia(cfg); } catch (e) { testo = `Non avviata: ${e.message}`; }
         await posta.crea(cfg).invia({ a: cfg.emailFiglio, oggetto: "Assistenza da remoto", testo });
         log("assistenza da remoto richiesta per email:", testo);
+      }
+      // Oggetto "consumi": quanto ha usato Claude (oggi, settimana, mese).
+      if (testoConsumi && (await posta.crea(cfg).prendiRichieste({ mittente: cfg.emailFiglio, parola: "consumi" })) > 0) {
+        await posta.crea(cfg).invia({ a: cfg.emailFiglio, oggetto: "Consumi dell'assistente", testo: testoConsumi(cfg) });
+        log("consumi mandati al figlio");
       }
       if (cfg.avvisaErrori !== false && adesso() - ultimoAvviso > UN_GIORNO) {
         const testo = registroDaMandare(fileLog);

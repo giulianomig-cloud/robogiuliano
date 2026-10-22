@@ -113,6 +113,11 @@
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
 ## Stato (22/10/2026, v1.8.0)
+- Da pubblicare (branch `in-corso`): report dei consumi. Ogni domanda scrive una riga in `consumi.jsonl` (cartella dei dati):
+  con la chiave il costo dai token × `PREZZI` (Opus 5.5 $4/$20 per milione, cache lettura $0.20, scrittura $5; altri modelli di
+  riserva in tabella), con l'abbonamento `total_cost_usd` di Claude Code (stima: non si paga a parte). `riassuntoConsumi`
+  = oggi / ultimi 7 giorni / questo mese / mese scorso; si vede nelle impostazioni (scheda Programma, `GET /consumi`) e arriva
+  per email con oggetto "consumi" (`assistenza.js`).
 - v1.8.0: avvisi, grandezza delle scritte, riposo, cambio di personaggio animato (vedi sopra) + tempi nel registro (righe "tempo: …": risposta completa, ogni strumento, Claude con chiave,
   Claude Code partito/pensato/totale/costo da `duration_api_ms`/`total_cost_usd`). Scopo: decidere se tenere Claude Code
   sempre acceso (Giuliano: "aggiungi al registro per ora"). Proposto anche: avviso immediato IMAP IDLE per le email
