@@ -98,7 +98,7 @@
   `releases/latest/download/versione.json` e si aggiorna da solo (`src/aggiorna.js`).
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
-## Stato (21/10/2026, v1.5.2)
+## Stato (22/10/2026, v1.6.0)
 - v1.5.2: sul PC vero con la 1.5.1 la bocca NON si apriva (le parole del karaoke invece si colorano: causa non trovata).
   Su richiesta di Giuliano ("se più sicuro rimettilo come era") la bocca è tornata come prima della 1.5: si apre e chiude a
   ritmo fisso mentre parla (keyframes `bocca`, `bocca-meta`, `bocca-chiusa`). `diciParola`/`data-bocca` restano solo per
@@ -107,7 +107,7 @@
 - v1.5: registro per email, assistenza da remoto, finestra nuova (risposta grande, karaoke, cosa sta facendo), impostazioni
   a schede, avatar più vivi. Da verificare sul PC vero: onde col microfono, "Sto cercando su internet" in abbonamento,
   assistenza da remoto.
-- Da pubblicare (v1.6, branch `in-corso`): avatar nuovi da ChatGPT con espressioni, occhiolino e nastri di luce.
+- v1.6.0: avatar nuovi da ChatGPT con espressioni, occhiolino e nastri di luce.
 - v1.4: ricette (vedere/salvare sul desktop/stampare, strumenti `salva_sul_desktop`, `referto_salva_sul_desktop`),
   controllo stampante prima di stampare (`giudicaStampante`: spenta, finta tipo "Print to PDF", fogli in coda), RoboYaymaris.
 - Giuliano preferisce raccogliere più modifiche e pubblicarle insieme quando dice "pubblica": nel frattempo lavorare sul
