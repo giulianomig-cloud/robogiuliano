@@ -116,7 +116,7 @@
 - Da pubblicare (branch `in-corso`): report dei consumi SENZA dollari (Giuliano: "togli il costo in dollari, dammi solo
   quanto utilizzo"). Ogni domanda scrive in `consumi.jsonl` token (entrata + cache + uscita: `tokenDi` / `usage` di Claude Code)
   e secondi di lavoro di Claude; `riassuntoConsumi` = oggi / ultimi 7 giorni / questo mese / mese scorso con domande, token,
-  minuti. Nelle impostazioni (scheda Programma, `GET /consumi`) e per email con oggetto "consumi". Limite dell'abbonamento:
+  minuti. SOLO per email con oggetto "consumi" (Giuliano: "levalo dalle impostazioni, scrivilo solo nel report"). Limite dell'abbonamento:
   scritte corrette in "Ho usato tutto l'abbonamento per ora" (non "credito del mese": il Pro ha limiti a ore/settimana).
 - v1.8.0: avvisi, grandezza delle scritte, riposo, cambio di personaggio animato (vedi sopra) + tempi nel registro (righe "tempo: …": risposta completa, ogni strumento, Claude con chiave,
   Claude Code partito/pensato/totale/costo da `duration_api_ms`/`total_cost_usd`). Scopo: decidere se tenere Claude Code

@@ -581,7 +581,6 @@ function avviaServer() {
     if (origine && origine !== `http://127.0.0.1:${PORTA}`) return json({ errore: "vietato" }, 403);
     try {
       const url = req.url.split("?")[0];
-      if (req.method === "GET" && url === "/consumi") return json({ periodi: riassuntoConsumi().map((p) => ({ ...p, tokenTesto: quantiToken(p.token) })) });
       if (req.method === "GET" && url === "/attivita") return json(attivita || {});
       if (req.method === "GET" && url === "/ping") return json({ ok: true, versione: aggiorna.VERSIONE });
       if (req.method === "GET" && url === "/") return html(leggiConfig() ? PAGINA : IMPOSTAZIONI);
