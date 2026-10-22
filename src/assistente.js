@@ -21,6 +21,10 @@ IMMAGINI["/robo-pensa.webp"] = require("./robo-pensa.webp");
 IMMAGINI["/robo-parla.webp"] = require("./robo-parla.webp");
 IMMAGINI["/robo-parla-2.webp"] = require("./robo-parla-2.webp");
 IMMAGINI["/robo-parla-3.webp"] = require("./robo-parla-3.webp");
+IMMAGINI["/robo-contento.webp"] = require("./robo-contento.webp");
+IMMAGINI["/robo-dispiaciuto.webp"] = require("./robo-dispiaciuto.webp");
+IMMAGINI["/robo-sorpreso.webp"] = require("./robo-sorpreso.webp");
+IMMAGINI["/robo-occhiolino.webp"] = require("./robo-occhiolino.webp");
 // Le pose di RoboYaymaris (stesse posizioni della bocca).
 IMMAGINI["/yaymaris-riposo.webp"] = require("./yaymaris-riposo.webp");
 IMMAGINI["/yaymaris-ascolto.webp"] = require("./yaymaris-ascolto.webp");
@@ -28,6 +32,10 @@ IMMAGINI["/yaymaris-pensa.webp"] = require("./yaymaris-pensa.webp");
 IMMAGINI["/yaymaris-parla.webp"] = require("./yaymaris-parla.webp");
 IMMAGINI["/yaymaris-parla-2.webp"] = require("./yaymaris-parla-2.webp");
 IMMAGINI["/yaymaris-parla-3.webp"] = require("./yaymaris-parla-3.webp");
+IMMAGINI["/yaymaris-contento.webp"] = require("./yaymaris-contento.webp");
+IMMAGINI["/yaymaris-dispiaciuto.webp"] = require("./yaymaris-dispiaciuto.webp");
+IMMAGINI["/yaymaris-sorpreso.webp"] = require("./yaymaris-sorpreso.webp");
+IMMAGINI["/yaymaris-occhiolino.webp"] = require("./yaymaris-occhiolino.webp");
 // Icone per stile: la finestra e il collegamento sul desktop usano quella dello stile scelto.
 const ICONE = {
   robo: { png: require("./icona.png"), ico: require("./icona.ico") },

@@ -39,13 +39,15 @@
 ## Stili e personaggi (decisi dall'utente)
 - **Aurora** (`data-tema="allegra"`): goccia colorata con faccina (occhi che sbattono, bocca che parla),
   bollicine, onde. Voce femminile. "Ehi Aurora". È lo stile predefinito, da lasciare com'è.
-- **RoboGiuliano** (`data-tema="robo"`): avatar robot con la faccia di Giuliano, 4 pose
-  (`src/robo-riposo|ascolto|pensa|parla.webp`, ricavate da un'immagine sua con lo sfondo tolto) + 2 posizioni della
-  bocca (`robo-parla-2/3.webp`, mascella alzata) che si alternano mentre parla. Voce maschile.
-  "Ehi RoboGiuliano" (accetta "robo/robot Giuliano"; "Giuliano" da solo NON lo sveglia).
+- **RoboGiuliano** (`data-tema="robo"`): avatar robot con la faccia di Giuliano. Dalla v1.6 immagini da un "foglio del
+  personaggio" 3x3 fatto da Giuliano con ChatGPT (prompt in sessione: una sola immagine con 9 pose, sfondo verde #00FF00):
+  ritagliate, verde tolto, ingrandite a 768x512, busto che sfuma in basso. Pose `riposo|ascolto|pensa|parla`, espressioni
+  `contento|dispiaciuto|sorpreso`, `occhiolino` (ChatGPT ha fatto l'occhiolino invece degli occhi chiusi: usato ogni tanto a
+  riposo). Bocca: `parla-2/3` = posa "parla" con SOLO la bocca della posa a bocca chiusa incollata e allineata (il corpo non
+  si muove). Voce maschile. "Ehi RoboGiuliano" (accetta "robo/robot Giuliano"; "Giuliano" da solo NON lo sveglia).
 - **RoboYaymaris** (impostazione `tema: "yaymaris"`, v1.4): terzo personaggio, stesso stile
   dei robot (`data-tema="robo"` + `data-personaggio="yaymaris"` per i colori rosa/viola), 4 pose `src/yaymaris-*.webp`
-  (dall'immagine mandata da Giuliano, sfondo a scacchi tolto) + bocca `yaymaris-parla-2/3.webp`, icona `icona-yaymaris`.
+  (dalla v1.6 anche lei dal foglio 3x3 di ChatGPT, stesse pose/espressioni di RoboGiuliano), icona `icona-yaymaris`.
   "Ehi RoboYaymaris": il nome lo scrive il riconoscimento in tanti modi (yay/jay/ia/gia + maris), "robo/robot" obbligatorio.
   Voce predefinita femminile (cambiabile nelle impostazioni).
 - Scartati (non riproporli): Classico crema/oro, Sfera, Ologramma, Aurora "vetro", Zeus (avatar neon e con la
@@ -83,6 +85,11 @@
   "opzione 1": contorno stretto di 1 px e sfumato, colori del bordo presi dall'interno, filtro bilaterale al 60%, colori -15%,
   contrasto -5% (script nella sessione, non nel repo). Yaymaris lasciata com'è (era già pulita).
 
+- Avatar v1.6 (approvato): espressioni vere dei robot con `data-espressione` (contenta/triste/sorpresa/occhiolino) per 1,2 s
+  all'inizio della risposta e 2,5 s dopo (regole con !important, prevalgono sulla posa del momento); nastri di luce animati
+  disegnati in SVG (`.nastri.dietro` sotto le immagini, `.nastri.davanti` sopra, 3 ellissi): colori del personaggio, più veloci
+  quando ascolta/pensa, si accendono a ritmo quando parla, verdi/arancioni/gialli con le emozioni.
+
 ## Versioni e aggiornamenti
 - La versione è `version` in `package.json` (finisce nell'exe come `__VERSIONE__`).
 - Push su `main` → GitHub Actions (`.github/workflows/rilascio.yml`, Windows): `npm test`, costruzione, prova
@@ -100,9 +107,7 @@
 - v1.5: registro per email, assistenza da remoto, finestra nuova (risposta grande, karaoke, cosa sta facendo), impostazioni
   a schede, avatar più vivi. Da verificare sul PC vero: onde col microfono, "Sto cercando su internet" in abbonamento,
   assistenza da remoto.
-- In attesa: Giuliano crea con ChatGPT pose nuove dei robot (riposo, ascolto, pensa, parla, bocca chiusa, occhi chiusi,
-  contento, dispiaciuto, sorpreso; 1536x1024 sfondo trasparente) → da ritagliare/allineare, collegare a `data-umore` e
-  allo sbattere delle palpebre, con video di prova prima di pubblicare.
+- Da pubblicare (v1.6, branch `in-corso`): avatar nuovi da ChatGPT con espressioni, occhiolino e nastri di luce.
 - v1.4: ricette (vedere/salvare sul desktop/stampare, strumenti `salva_sul_desktop`, `referto_salva_sul_desktop`),
   controllo stampante prima di stampare (`giudicaStampante`: spenta, finta tipo "Print to PDF", fogli in coda), RoboYaymaris.
 - Giuliano preferisce raccogliere più modifiche e pubblicarle insieme quando dice "pubblica": nel frattempo lavorare sul

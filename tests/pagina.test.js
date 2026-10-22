@@ -21,7 +21,7 @@ test("ci sono solo gli stili Aurora e robot, e i personaggi Aurora, RoboGiuliano
 test("ogni foto dei personaggi esiste ed è servita dal programma", () => {
   const assistente = fs.readFileSync(path.join(src, "assistente.js"), "utf8");
   const pose = [...pagina.matchAll(/data-f="([\w-]+)"/g)].map((m) => m[1]);
-  assert.strictEqual(pose.length, 6);
+  assert.strictEqual(pose.length, 10);
   for (const chi of ["robo", "yaymaris"]) {
     for (const posa of pose) {
       const nome = `${chi}-${posa}.webp`;
