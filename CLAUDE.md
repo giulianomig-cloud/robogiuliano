@@ -104,8 +104,8 @@
   `releases/latest/download/versione.json` e si aggiorna da solo (`src/aggiorna.js`).
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
-## Stato (22/10/2026, v1.7.0)
-- Dopo la 1.7 (da pubblicare): le immagini avevano `Cache-Control: max-age=86400` e stessi nomi di file → Edge mostrava per
+## Stato (22/10/2026, v1.7.1)
+- v1.7.1: le immagini avevano `Cache-Control: max-age=86400` e stessi nomi di file → Edge mostrava per
   un giorno gli avatar VECCHI. Ora `no-cache`. Rimedio immediato sul PC: Ctrl+F5 nella finestra.
 - v1.7.0: barra per scegliere il personaggio + cambio a voce + risponde a tutti i nomi, icona fissa "Assistente".
   Da verificare sul PC vero: il collegamento sul desktop rifatto da solo dopo l'aggiornamento.
