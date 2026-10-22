@@ -41,12 +41,10 @@ IMMAGINI["/faccia-allegra.webp"] = require("./faccia-allegra.webp");
 IMMAGINI["/faccia-robo.webp"] = require("./faccia-robo.webp");
 IMMAGINI["/faccia-yaymaris.webp"] = require("./faccia-yaymaris.webp");
 // Icone per stile: la finestra e il collegamento sul desktop usano quella dello stile scelto.
-const ICONE = {
-  robo: { png: require("./icona.png"), ico: require("./icona.ico") },
-  allegra: { png: require("./icona-aurora.png"), ico: require("./icona-aurora.ico") },
-  yaymaris: { png: require("./icona-yaymaris.png"), ico: require("./icona-yaymaris.ico") },
-};
-const iconaDi = (cfg) => ICONE[(cfg && cfg.tema) || "allegra"] || ICONE.allegra;
+// Icona fissa (Aurora con le cuffie da robot, scelta da Giuliano): non cambia quando si cambia personaggio.
+const ICONA = { png: require("./icona.png"), ico: require("./icona.ico") };
+// Nome fisso del collegamento sul desktop (il personaggio si cambia dalla pagina principale).
+const NOME_COLLEGAMENTO = "Assistente";
 
 const PORTA = 7777;
 const DIR = process.platform === "win32"
@@ -420,8 +418,8 @@ async function salvaImpostazioni(dati) {
   fs.writeFileSync(CONFIG, JSON.stringify(cfg, null, 2));
   if (process.platform === "win32" && process.env.ASSISTENTE_EXE) {
     try {
-      await installaCollegamenti(process.env.ASSISTENTE_EXE, cfg.avvioAutomatico, nomeDi(cfg), cfg);
-      esiti.push({ ok: true, testo: cfg.avvioAutomatico ? `Si aprirà da solo all'accensione. Icona "${nomeDi(cfg)}" sul desktop.` : `Icona "${nomeDi(cfg)}" sul desktop (non si apre da solo all'accensione).` });
+      await installaCollegamenti(process.env.ASSISTENTE_EXE, cfg.avvioAutomatico, NOME_COLLEGAMENTO, vecchia);
+      esiti.push({ ok: true, testo: cfg.avvioAutomatico ? `Si aprirà da solo all'accensione. Icona "${NOME_COLLEGAMENTO}" sul desktop.` : `Icona "${NOME_COLLEGAMENTO}" sul desktop (non si apre da solo all'accensione).` });
     } catch (e) {
       log("collegamenti", e);
       esiti.push({ ok: false, testo: `Avvio automatico non impostato: ${e.message}` });
@@ -438,12 +436,12 @@ async function installaCollegamenti(exe, avvio, nome, cfg) {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.copyFileSync(exe, dest);
   }
-  // L'icona dello stile scelto, con il nome dello stile: se si cambia stile cambia anche il file, e Windows la aggiorna.
-  const icona = path.join(path.dirname(dest), `icona-${nomeDi({ tema: cfg && cfg.tema }).toLowerCase()}.ico`);
-  fs.writeFileSync(icona, Buffer.from(iconaDi(cfg).ico, "base64"));
+  // File nuovo con un nome nuovo, così Windows non tiene in memoria le icone vecchie dei personaggi.
+  const icona = path.join(path.dirname(dest), "icona-assistente.ico");
+  fs.writeFileSync(icona, Buffer.from(ICONA.ico, "base64"));
   const ps = `
 $s = New-Object -ComObject WScript.Shell
-foreach ($vecchio in @('Assistente Aurora.lnk', 'Ehi Claude.lnk', 'Aurora.lnk', 'RoboGiuliano.lnk', 'RoboYaymaris.lnk', ${posta.psStr(nome + ".lnk")})) {
+foreach ($vecchio in @('Assistente Aurora.lnk', 'Ehi Claude.lnk', 'Aurora.lnk', 'RoboGiuliano.lnk', 'RoboYaymaris.lnk', ${posta.psStr(cfg && cfg.nomeAssistente ? cfg.nomeAssistente + ".lnk" : "Aurora.lnk")}, ${posta.psStr(nome + ".lnk")})) {
   $f = Join-Path ([Environment]::GetFolderPath('Startup')) $vecchio; if (Test-Path $f) { Remove-Item $f }
   $f = Join-Path ([Environment]::GetFolderPath('Desktop')) $vecchio; if (Test-Path $f) { Remove-Item $f }
 }
@@ -458,6 +456,18 @@ foreach ($p in $cartelle) {
   $l.Save()
 }`;
   await posta.powershell(ps + "\nie4uinit.exe -show");
+}
+
+// Dopo l'aggiornamento alla versione con l'icona fissa: rifà da solo il collegamento sul desktop (una volta sola),
+// così sul PC della mamma cambia icona e nome senza dover salvare le impostazioni.
+async function rifaiCollegamentoUnaVolta() {
+  const cfg = leggiConfig();
+  if (process.platform !== "win32" || !cfg || cfg.collegamentoFisso || !process.env.ASSISTENTE_EXE) return;
+  try {
+    await installaCollegamenti(process.env.ASSISTENTE_EXE, cfg.avvioAutomatico !== false, NOME_COLLEGAMENTO, cfg);
+    fs.writeFileSync(CONFIG, JSON.stringify({ ...leggiConfig(), collegamentoFisso: true }, null, 2));
+    log("collegamento sul desktop rifatto con l'icona fissa");
+  } catch (e) { log("collegamento sul desktop non rifatto", e); }
 }
 
 function apriFinestra(pagina = "") {
@@ -504,7 +514,7 @@ function avviaServer() {
           registroSuRichiesta: c.registroSuRichiesta !== false, avvisaErrori: c.avvisaErrori !== false, registroConConversazioni: !!c.registroConConversazioni, assistenzaRemota: !!c.assistenzaRemota });
       }
       if (req.method === "POST" && url === "/salva") return json({ esiti: await salvaImpostazioni(await corpo(req)) });
-      if (req.method === "GET" && url === "/icona.png") { res.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "no-cache" }); return res.end(Buffer.from(iconaDi(leggiConfig()).png, "base64")); }
+      if (req.method === "GET" && url === "/icona.png") { res.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "no-cache" }); return res.end(Buffer.from(ICONA.png, "base64")); }
       // Strumenti della posta chiesti da Claude Code (modalità abbonamento), solo con la parola segreta.
       if (req.method === "POST" && url === "/strumento") {
         if (req.headers["x-assistente"] !== SEGRETO) return json({ errore: "vietato" }, 403);
@@ -588,6 +598,7 @@ async function main() {
     avviaServer();
     aggiorna.avvia({ log, occupato: () => Date.now() - conversazione.ultimo < 2 * 60 * 1000, riavvia: aggiorna.riavviaServizio });
     assistenza.crea({ leggiConfig, posta, log, fileLog: LOG, diagnosi, remota }).avvia();
+    rifaiCollegamentoUnaVolta();
     return;
   }
   // Doppio clic o avvio di Windows: accende il servizio nascosto (se serve) e apre la finestra.

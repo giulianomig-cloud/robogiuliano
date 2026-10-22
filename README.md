@@ -75,8 +75,9 @@ la pagina ufficiale è support.claude.com/articles/15036540.
 - **Apri da solo all'accensione**: lasciala accesa sul PC di chi lo usa, toglila se lo stai solo provando.
 
 Clic su **Salva e prova**: devono comparire le righe verdi ✓ (posta collegata, Claude collegato, icona creata).
-Sul desktop compare l'icona dello stile scelto (faccina di Aurora o faccia di RoboGiuliano): se cambi stile,
-premi di nuovo **Salva e prova** e cambia anche l'icona.
+Sul desktop compare l'icona **Assistente** (Aurora con le cuffie): è sempre la stessa, qualunque personaggio si scelga.
+Il personaggio (Aurora, RoboGiuliano, RoboYaymaris) si cambia dalla barra in alto a destra della finestra, oppure a voce:
+"Ehi Aurora, passa a RoboGiuliano".
 
 ### 5. Microfono
 Clic su **Apri l'assistente** → Edge chiede il **microfono** → **Consenti** (una volta sola).
@@ -101,7 +102,7 @@ Poi **riavvia il computer** e controlla che si apra da solo.
 - Si dice **"Ehi Aurora…"** (o il nome scelto) oppure si **tocca** l'avatar.
 - Quando l'assistente fa una domanda (*"La mando?"*) si risponde subito, senza ridire il nome.
 - Toccare l'avatar mentre parla lo fa smettere.
-- Se si chiude la finestra: doppio clic sull'icona **Assistente Aurora** sul desktop.
+- Se si chiude la finestra: doppio clic sull'icona **Assistente** sul desktop.
 - Se compare *"Tocca qui per iniziare"*: un tocco (Edge a volte vuole un clic prima di poter parlare).
 - Cartoncino da stampare con le frasi da dire: [`docs/cartoncino-mamma.html`](docs/cartoncino-mamma.html).
 

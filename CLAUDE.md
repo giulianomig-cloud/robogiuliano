@@ -25,9 +25,10 @@
   (`tests/sito-finto.js`) e con il vero Claude; il sito vero (www.usi.it/areaprivata/referti) NON si raggiunge
   dall'ambiente cloud: la prima prova vera è sul PC della madre. Notifica USI: "il suo referto è disponibile
   online all'indirizzo https://www.usi.it/areaprivata/referti" (niente PDF allegato).
-- Icone (v1.3): nell'exe sempre quella di RoboGiuliano (`src/icona.ico`, con rcedit); il collegamento sul desktop e la finestra
-  usano quella dello stile scelto (`icona.ico/png` RoboGiuliano, `icona-aurora.ico/png` Aurora): l'.ico viene scritta nella
-  cartella del programma con il nome dello stile e il collegamento la usa (`IconLocation`), poi `ie4uinit.exe -show`.
+- Icona (dalla v1.7, scelta "C · Aurora con le cuffie" fra A tre facce / B fumetto / C): UNA sola icona fissa `src/icona.ico/png`
+  (anche nell'exe con rcedit) che non cambia col personaggio; collegamento sul desktop con nome fisso "Assistente"
+  (`NOME_COLLEGAMENTO`, file `icona-assistente.ico`). Dopo l'aggiornamento il servizio rifà da solo il collegamento una volta
+  (`rifaiCollegamentoUnaVolta`, segna `collegamentoFisso` nel config). Tolte le icone per personaggio.
 - Stampa PDF (v1.3): prima SumatraPDF se installato (`-print-to-default -silent`), altrimenti il verbo "Print" del lettore predefinito.
 - Posta Yahoo via IMAP/SMTP con **password per app** (`src/posta.js`); stampa silenziosa con PowerShell
   `Out-Printer` (stampante predefinita), allegati con `Start-Process -Verb Print`.
@@ -94,7 +95,6 @@
   (`#scelta`, immagini `faccia-allegra|robo|yaymaris.webp`), tocco → `POST /personaggio` (salva `tema`, azzera
   `nomeAssistente` e la conversazione) e "Eccomi! Sono …". A voce: "passa a / cambia con / fammi parlare con / voglio / torna"
   + nome (`personaggioChiesto`). La parola per svegliarlo accetta SEMPRE tutti e tre i nomi (`usaNome` unisce le regex).
-  Icona del desktop: Giuliano vuole un'icona FISSA e neutra (proposte A tre facce, B fumetto, C Aurora con le cuffie: in attesa).
 
 ## Versioni e aggiornamenti
 - La versione è `version` in `package.json` (finisce nell'exe come `__VERSIONE__`).

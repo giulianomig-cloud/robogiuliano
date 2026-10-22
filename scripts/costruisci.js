@@ -41,7 +41,7 @@ fs.copyFileSync(nodeExe, exe);
 if (process.platform === "win32") {
   // La firma digitale di node.exe non vale più dopo l'iniezione: si toglie se signtool c'è.
   try { execFileSync("signtool", ["remove", "/s", exe], { stdio: "ignore" }); } catch {}
-  // L'icona di RoboGiuliano e il nome del programma (si vedono sul desktop e nella barra delle applicazioni).
+  // L'icona fissa (Aurora con le cuffie) e il nome del programma (si vedono sul desktop e nella barra delle applicazioni).
   await require("rcedit")(exe, {
     icon: path.join(radice, "src", "icona.ico"),
     "version-string": { FileDescription: "Assistente vocale", ProductName: "RoboGiuliano" },
