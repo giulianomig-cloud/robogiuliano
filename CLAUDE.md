@@ -96,6 +96,14 @@
   `nomeAssistente` e la conversazione) e "Eccomi! Sono …". A voce: "passa a / cambia con / fammi parlare con / voglio / torna"
   + nome (`personaggioChiesto`). La parola per svegliarlo accetta SEMPRE tutti e tre i nomi (`usaNome` unisce le regex).
 
+- Grafica v1.8 (scelte "3 - 6" fra 6 idee; NON scelte: 1 schede delle email, 2 anteprima del documento nella finestra):
+  avvisi = striscia in alto `#avviso` (rossa/arancione, si chiude toccandola) dai veri errori (`avvisoDa` in assistente.js:
+  stampante spenta/fogli in attesa/finta, PDF non stampabile, internet, Claude non collegato, credito finito; `/chiedi` risponde
+  `{risposta, avviso}`), più `offline`/`online` del browser e microfono negato. Grandezza delle scritte: impostazione `testo`
+  (normale/grande/moltogrande → `data-testo`). Riposo: dopo 10 min a riposo `data-dorme` (velo `#notte`, avatar che fluttua,
+  "z", occhi chiusi di Aurora), si sveglia a ogni cambio di stato. Cambio di personaggio: classi `esce`/`entra` + `.lampo`.
+  Bocca controllata dopo le modifiche: robot alterna aperta/metà/chiusa, Aurora apre e chiude.
+
 ## Versioni e aggiornamenti
 - La versione è `version` in `package.json` (finisce nell'exe come `__VERSIONE__`).
 - Push su `main` → GitHub Actions (`.github/workflows/rilascio.yml`, Windows): `npm test`, costruzione, prova
@@ -104,8 +112,8 @@
   `releases/latest/download/versione.json` e si aggiorna da solo (`src/aggiorna.js`).
 - **A ogni modifica da pubblicare: aumenta `version`.**
 
-## Stato (22/10/2026, v1.7.2)
-- Da pubblicare (branch `in-corso`): tempi nel registro (righe "tempo: …": risposta completa, ogni strumento, Claude con chiave,
+## Stato (22/10/2026, v1.8.0)
+- v1.8.0: avvisi, grandezza delle scritte, riposo, cambio di personaggio animato (vedi sopra) + tempi nel registro (righe "tempo: …": risposta completa, ogni strumento, Claude con chiave,
   Claude Code partito/pensato/totale/costo da `duration_api_ms`/`total_cost_usd`). Scopo: decidere se tenere Claude Code
   sempre acceso (Giuliano: "aggiungi al registro per ora"). Proposto anche: avviso immediato IMAP IDLE per le email
   "assistenza"/"registro" (oggi controllo ogni 5 min) e frase "Un attimo, guardo la posta…" mentre lavora: non ancora decisi.

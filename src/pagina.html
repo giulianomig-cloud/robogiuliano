@@ -32,6 +32,48 @@
   @keyframes puntini { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
   #avvia { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 24px; font-size: 40px; font-weight: 700; cursor: pointer; z-index: 5; }
   #avvia span { font-size: 120px; }
+  /* Grandezza delle scritte (impostazione "testo") */
+  [data-testo="grande"] #risposta { font-size: 42px; }
+  [data-testo="grande"] #stato { font-size: 52px; }
+  [data-testo="grande"] #aiuto { font-size: 32px; }
+  [data-testo="moltogrande"] #risposta { font-size: 52px; max-height: 44vh; }
+  [data-testo="moltogrande"] #stato { font-size: 60px; }
+  [data-testo="moltogrande"] #aiuto { font-size: 36px; }
+  [data-testo="moltogrande"] #cerchio { zoom: .85; }
+  @media (max-height: 820px) {
+    [data-testo="grande"] #risposta { font-size: 36px; } [data-testo="grande"] #stato { font-size: 44px; }
+    [data-testo="moltogrande"] #risposta { font-size: 42px; } [data-testo="moltogrande"] #stato { font-size: 48px; } [data-testo="moltogrande"] #cerchio { zoom: .66; }
+  }
+  /* Striscia in alto quando qualcosa non va (rossa = serio, arancione = da sistemare); si chiude toccandola */
+  #avviso { position: fixed; top: 0; left: 0; right: 0; z-index: 6; display: none; align-items: center; justify-content: center; gap: 18px; cursor: pointer;
+    padding: 14px 24px; font-size: 30px; font-weight: 700; color: #fff; text-align: left; box-shadow: 0 8px 28px rgba(0,0,0,.4); }
+  #avviso.si { display: flex; animation: scendi .45s cubic-bezier(.2,.9,.3,1.2); }
+  #avviso .ic { font-size: 44px; } #avviso small { display: block; font-size: 20px; font-weight: 500; opacity: .92; }
+  #avviso.rosso { background: linear-gradient(90deg, #b3261e, #e0543c); } #avviso.arancio { background: linear-gradient(90deg, #c76a00, #f0a020); }
+  @keyframes scendi { from { transform: translateY(-100%); } }
+  body.con-avviso #scelta { top: 104px; }
+  /* Riposo: dopo 10 minuti senza parlare lo schermo si scurisce e l'avatar sonnecchia */
+  #notte { display: none; }
+  body[data-dorme] #notte { display: block; position: fixed; inset: 0; background: rgba(0,0,8,.55); pointer-events: none; }
+  body[data-dorme] #cerchio { filter: brightness(.75) saturate(.75); animation: sonno 7s ease-in-out infinite !important; }
+  body[data-dorme] #detto, body[data-dorme] #risposta, body[data-dorme] #scelta { opacity: .35; }
+  body[data-dorme] #stato { opacity: .6; }
+  body[data-dorme] .nastri { --giro: 14s; opacity: .45; }
+  @keyframes sonno { 50% { transform: translateY(-14px) rotate(-2deg); } }
+  [data-tema="allegra"] body[data-dorme] .occhio { height: 5px; top: 44%; border-radius: 3px; animation: none; }
+  [data-tema="allegra"] body[data-dorme] .occhio::after { display: none; }
+  #zzz { display: none; }
+  body[data-dorme] #zzz { display: block; }
+  #zzz span { position: fixed; z-index: 2; font-size: 40px; font-weight: 800; color: #cfe3ff; opacity: 0; animation: zzz 4s ease-out infinite; pointer-events: none; }
+  @keyframes zzz { 0% { opacity: 0; transform: translate(0,0) scale(.6); } 20% { opacity: .9; } 100% { opacity: 0; transform: translate(60px,-120px) scale(1.3); } }
+  /* Cambio di personaggio: quello vecchio sparisce girando in un lampo di luce, il nuovo ne esce */
+  #cerchio.esce { animation: esce .6s ease-in forwards !important; }
+  #cerchio.entra { animation: entra .8s cubic-bezier(.2,.9,.3,1.25) !important; }
+  @keyframes esce { to { transform: scale(.05) rotate(200deg); opacity: 0; filter: blur(6px) brightness(2); } }
+  @keyframes entra { from { transform: scale(.05) rotate(-200deg); opacity: 0; filter: blur(6px) brightness(2); } }
+  .lampo { position: fixed; width: 40px; height: 40px; margin: -20px; border-radius: 50%; z-index: 5; pointer-events: none;
+    background: radial-gradient(circle, #fff, rgba(255,230,150,.8) 30%, transparent 70%); animation: lampo .9s ease-out forwards; }
+  @keyframes lampo { 0% { transform: scale(.2); opacity: 1; } 60% { transform: scale(9); opacity: .8; } 100% { transform: scale(14); opacity: 0; } }
   /* Barra in alto a destra per scegliere il personaggio */
   #scelta { position: fixed; right: 18px; top: 16px; z-index: 3; display: flex; gap: 14px; align-items: flex-end; padding: 8px 16px 6px; border-radius: 999px;
     background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); backdrop-filter: blur(12px); }
@@ -239,6 +281,7 @@
 </head>
 <body>
   <div id="bolle" aria-hidden="true"><span style="left:6%;width:22px;height:22px;--c:#ffd36e;--t:14s;--d:-2s;--x:40px"></span><span style="left:15%;width:12px;height:12px;--c:#7ef0ff;--t:11s;--d:-7s;--x:-30px"></span><span style="left:24%;width:30px;height:30px;--c:#ff7eb3;--t:17s;--d:-4s;--x:50px"></span><span style="left:37%;width:14px;height:14px;--c:#a78bfa;--t:12s;--d:-9s;--x:-40px"></span><span style="left:48%;width:20px;height:20px;--c:#7ef0ff;--t:15s;--d:-1s;--x:30px"></span><span style="left:58%;width:10px;height:10px;--c:#ffd36e;--t:10s;--d:-5s;--x:-20px"></span><span style="left:67%;width:26px;height:26px;--c:#ff7eb3;--t:16s;--d:-11s;--x:45px"></span><span style="left:76%;width:16px;height:16px;--c:#a78bfa;--t:13s;--d:-3s;--x:-35px"></span><span style="left:85%;width:24px;height:24px;--c:#7ef0ff;--t:18s;--d:-8s;--x:30px"></span><span style="left:93%;width:12px;height:12px;--c:#ffd36e;--t:11s;--d:-6s;--x:-25px"></span></div>
+  <div id="notte" aria-hidden="true"></div>
   <button id="cerchio" aria-label="Parla con l'assistente"><span class="strato s1"></span><span class="strato s2"></span><span class="strato s3"></span><span class="faccia"><span class="occhio sx"></span><span class="occhio dx"></span><span class="bocca"></span></span><span class="robo"><svg class="nastri dietro" viewBox="0 0 570 380" aria-hidden="true"><g transform="rotate(-8 285 300)"><path class="alone" d="M33,300 A252,52 0 0 1 537,300"/><path class="filo f1" d="M33,300 A252,52 0 0 1 537,300"/></g><g transform="rotate(10 285 342)"><path class="alone" d="M67,342 A218,38 0 0 1 503,342"/><path class="filo f2" d="M67,342 A218,38 0 0 1 503,342"/></g><g transform="rotate(-15 285 262)"><path class="alone" d="M17,262 A268,64 0 0 1 553,262"/><path class="filo f3" d="M17,262 A268,64 0 0 1 553,262"/></g></svg><img data-p="riposo" data-f="riposo" alt=""><img data-p="ascolto" data-f="ascolto" alt=""><img data-p="pensa" data-f="pensa" alt=""><img data-p="parla" data-f="parla" alt=""><img data-p="parla" data-f="parla-2" class="p2" alt=""><img data-p="parla" data-f="parla-3" class="p3" alt=""><img data-p="contento" data-f="contento" alt=""><img data-p="dispiaciuto" data-f="dispiaciuto" alt=""><img data-p="sorpreso" data-f="sorpreso" alt=""><img data-p="occhiolino" data-f="occhiolino" alt=""><svg class="nastri davanti" viewBox="0 0 570 380" aria-hidden="true"><g transform="rotate(-8 285 300)"><path class="alone" d="M537,300 A252,52 0 0 1 33,300"/><path class="filo f1" d="M537,300 A252,52 0 0 1 33,300"/></g><g transform="rotate(10 285 342)"><path class="alone" d="M503,342 A218,38 0 0 1 67,342"/><path class="filo f2" d="M503,342 A218,38 0 0 1 67,342"/></g><g transform="rotate(-15 285 262)"><path class="alone" d="M553,262 A268,64 0 0 1 17,262"/><path class="filo f3" d="M553,262 A268,64 0 0 1 17,262"/></g></svg></span><span class="orbita"><i></i><i></i></span><span class="onde"></span><span class="icona">🎙️</span></button>
   <div id="stato">Un momento…</div>
   <div id="azione"></div>
@@ -246,6 +289,8 @@
   <div id="detto"></div>
   <div id="risposta"></div>
   <div id="avvia"><span>👆</span>Tocca qui per iniziare</div>
+  <div id="avviso" role="alert"></div>
+  <div id="zzz" aria-hidden="true"><span style="left:56%;top:18%">z</span><span style="left:60%;top:14%;animation-delay:1.3s">z</span><span style="left:64%;top:10%;animation-delay:2.6s">z</span></div>
   <div id="scelta" aria-label="Chi ti risponde"><button data-tema="allegra"><img src="/faccia-allegra.webp" alt="">Aurora</button><button data-tema="robo"><img src="/faccia-robo.webp" alt="">RoboGiuliano</button><button data-tema="yaymaris"><img src="/faccia-yaymaris.webp" alt="">RoboYaymaris</button></div>
   <a id="impostazioni" href="/impostazioni">impostazioni <span id="ver" translate="no"></span></a>
 <script>
@@ -283,6 +328,7 @@
   });
   function applicaPersonaggio(tema) {
     const c = config, pers = PERSONAGGI[tema];
+    document.documentElement.dataset.testo = parametri.get("testo") || c.testo || "normale";
     // I personaggi robot (RoboGiuliano, RoboYaymaris) hanno lo stesso stile: cambiano le foto e i colori.
     document.documentElement.dataset.tema = pers.file ? "robo" : tema;
     document.documentElement.dataset.personaggio = tema;
@@ -299,12 +345,38 @@
     for (const [tema, p] of Object.entries(PERSONAGGI)) if (creaSveglia(p.nome).test(m[1])) return tema;
     return null;
   }
+  // Striscia in alto: { tipo: "rosso"|"arancio", icona, testo, sotto }; null la toglie.
+  function mostraAvviso(a) {
+    const el = $("avviso");
+    el.classList.toggle("si", !!a);
+    document.body.classList.toggle("con-avviso", !!a);
+    if (!a) return;
+    el.className = "si " + a.tipo;
+    el.dataset.chi = a.chi || "";
+    el.innerHTML = "";
+    const ic = document.createElement("span"); ic.className = "ic"; ic.textContent = a.icona;
+    const t = document.createElement("span"); t.textContent = a.testo;
+    const sotto = document.createElement("small"); sotto.textContent = a.sotto; t.appendChild(sotto);
+    el.append(ic, t);
+  }
+  $("avviso").onclick = () => mostraAvviso(null);
+  window.addEventListener("offline", () => mostraAvviso({ tipo: "rosso", icona: "📶", testo: "Internet non funziona", sotto: "Controlla che il modem sia acceso. Riprovo da solo.", chi: "rete" }));
+  window.addEventListener("online", () => { if ($("avviso").dataset.chi === "rete") mostraAvviso(null); });
+
   async function cambiaPersonaggio(tema) {
     clearTimeout(timerComando);
     speechSynthesis.cancel();
     try { await fetch("/personaggio", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tema }) }); } catch {}
     config.nomeAssistente = "";   // il nome scelto nelle impostazioni valeva per il personaggio di prima
+    const c = $("cerchio"), r = c.getBoundingClientRect();
+    c.classList.add("esce");
+    await new Promise((ok) => setTimeout(ok, 600));
+    const l = document.createElement("div");
+    l.className = "lampo"; l.style.left = r.left + r.width / 2 + "px"; l.style.top = r.top + r.height / 2 + "px";
+    document.body.appendChild(l); setTimeout(() => l.remove(), 1000);
     applicaPersonaggio(tema);
+    c.classList.replace("esce", "entra");
+    setTimeout(() => c.classList.remove("entra"), 850);
     $("detto").textContent = "";
     rispondi("Eccomi! Sono " + NOME + ".");
   }
@@ -320,10 +392,20 @@
   let voce = null;
   let parlaSbloccato = true;
 
+  const SONNO = 10 * 60 * 1000;
+  let timerSonno = null;
   function mostra(nuovo, scritta) {
     stato = nuovo;
     chiudiBocca();
-    document.body.className = { comando: "ascolto", pensa: "pensa", parla: "parla" }[nuovo] || "";
+    // Ogni cambio di stato la sveglia; a riposo, dopo 10 minuti senza niente, si addormenta.
+    delete document.body.dataset.dorme;
+    clearTimeout(timerSonno);
+    if (nuovo === "riposo") timerSonno = setTimeout(() => {
+      if (stato !== "riposo") return;
+      document.body.dataset.dorme = "";
+      $("stato").textContent = "Riposo… chiamami quando vuoi";
+    }, SONNO);
+    document.body.className = ({ comando: "ascolto", pensa: "pensa", parla: "parla" }[nuovo] || "") + ($("avviso").classList.contains("si") ? " con-avviso" : "");
     $("stato").textContent = scritta;
     document.querySelector("#cerchio .icona").textContent = { comando: "👂", pensa: "💭", parla: "🗣️" }[nuovo] || "🎙️";
   }
@@ -390,7 +472,7 @@
   }
   // Ogni tanto, quando è a riposo, fa l'occhiolino.
   setInterval(() => {
-    if (stato === "riposo" && !document.body.dataset.espressione && Math.random() < 0.3) espressione("occhiolino", 500);
+    if (stato === "riposo" && !("dorme" in document.body.dataset) && !document.body.dataset.espressione && Math.random() < 0.3) espressione("occhiolino", 500);
   }, 6000);
 
   // ---------- Volume della sua voce mentre ascolta (per le onde) ----------
@@ -513,7 +595,8 @@
       if (e.error === "not-allowed" || e.error === "service-not-allowed") {
         mostra("riposo", "Non sento il microfono");
         $("aiuto").textContent = "Serve il permesso del microfono: chiedi aiuto a tuo figlio.";
-        document.body.className = "errore";
+        mostraAvviso({ tipo: "rosso", icona: "🎤", testo: "Non sento il microfono", sotto: "Serve il permesso del microfono: chiedi aiuto a tuo figlio." });
+        document.body.classList.add("errore");
       }
     };
     // Il browser ogni tanto smette di ascoltare da solo: si riparte subito.
@@ -568,7 +651,9 @@
     let risposta;
     try {
       const r = await fetch("/chiedi", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ testo }) });
-      risposta = (await r.json()).risposta || "Scusa, non ho capito.";
+      const dati = await r.json();
+      risposta = dati.risposta || "Scusa, non ho capito.";
+      if (!(dati.avviso === null && $("avviso").dataset.chi === "rete" && !navigator.onLine)) mostraAvviso(dati.avviso);
     } catch {
       risposta = "Scusa, qualcosa non ha funzionato. Riprova.";
     }

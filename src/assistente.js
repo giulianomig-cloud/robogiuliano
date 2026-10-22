@@ -212,10 +212,29 @@ function segnaAttivita(nome) {
   if (a) attivita = { testo: a[1], icona: a[2], dove: a[3] };
 }
 
+// La striscia colorata in alto nella finestra quando qualcosa non va (rosso = serio, arancio = da sistemare).
+let avviso = null;
+const AVVISI = [
+  [/stampante.*(spenta|scollegata)/i, "arancio", "🖨️", "La stampante è spenta", "Accendila, poi dimmi «riprova»."],
+  [/fogli in attesa/i, "arancio", "🖨️", "Ci sono fogli in attesa nella stampante", "Guarda se sono usciti, poi dimmi «riprova»."],
+  [/non c'è una stampante|non stampa su carta/i, "rosso", "🖨️", "Manca la stampante giusta", "Serve l'aiuto di tuo figlio."],
+  [/manca un programma che sappia stampare/i, "arancio", "📄", "Non riesco a stampare questo documento", "L'ho salvato nei Documenti. Serve l'aiuto di tuo figlio."],
+  [/ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ECONNRESET|ETIMEDOUT|getaddrinfo|network|internet/i, "rosso", "📶", "Internet non funziona", "Controlla che il modem sia acceso, poi riprova."],
+];
+function avvisoDa(e) {
+  if (e instanceof abbonamento.ErroreAbbonamento && e.tipo === "accesso") return { tipo: "rosso", icona: "🔑", testo: "Il collegamento a Claude non funziona", sotto: "Serve l'aiuto di tuo figlio." };
+  if (e instanceof abbonamento.ErroreAbbonamento && e.tipo === "limite") return { tipo: "arancio", icona: "⏳", testo: "Il credito del mese è finito", sotto: "Serve l'aiuto di tuo figlio." };
+  if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) return { tipo: "rosso", icona: "🔑", testo: "Il collegamento a Claude non funziona", sotto: "Serve l'aiuto di tuo figlio." };
+  if (e instanceof Anthropic.APIConnectionError) return { tipo: "rosso", icona: "📶", testo: "Internet non funziona", sotto: "Controlla che il modem sia acceso, poi riprova." };
+  const a = AVVISI.find(([re]) => re.test(String(e && (e.message || e))));
+  return a ? { tipo: a[1], icona: a[2], testo: a[3], sotto: a[4] } : null;
+}
+
 // Ogni strumento scrive nel registro quanto ci ha messo (per capire dove si perde tempo).
 async function eseguiStrumento(nome, input, cfg, conv, testoUtente) {
   const t0 = Date.now();
   try { return await eseguiStrumentoVero(nome, input, cfg, conv, testoUtente); }
+  catch (e) { avviso = avvisoDa(e) || avviso; throw e; }
   finally { log(`tempo: strumento ${nome} ${secondi(t0)}`); }
 }
 const secondi = (t0) => `${((Date.now() - t0) / 1000).toFixed(1)} s`;
@@ -407,6 +426,7 @@ async function salvaImpostazioni(dati) {
     nomeAssistente: (dati.nomeAssistente || "").trim(),
     tema: dati.tema || vecchia.tema || "allegra",
     voce: dati.voce || vecchia.voce || "auto",
+    testo: ["normale", "grande", "moltogrande"].includes(dati.testo) ? dati.testo : vecchia.testo || "normale",
     avvioAutomatico: dati.avvioAutomatico === "on" || dati.avvioAutomatico === true,
   };
   const esiti = [];
@@ -524,7 +544,7 @@ function avviaServer() {
       if (req.method === "GET" && IMMAGINI[url]) { res.writeHead(200, { "Content-Type": "image/webp", "Cache-Control": "no-cache" }); return res.end(Buffer.from(IMMAGINI[url], "base64")); }
       if (req.method === "GET" && url === "/config") {
         const c = leggiConfig() || {};
-        return json({ versione: aggiorna.VERSIONE, avvioAutomatico: c.avvioAutomatico !== false, tema: c.tema || "allegra", nomeAssistente: c.nomeAssistente || "", voce: c.voce || "auto", nome: c.nome || "", email: c.email || "", emailFiglio: c.emailFiglio || "", haPassword: !!c.password, haChiave: !!c.apiKey, modo: c.modo || "chiave", haToken: !!c.tokenAbbonamento, usiUtente: c.usiUtente || "", haUsi: !!c.usiPassword,
+        return json({ versione: aggiorna.VERSIONE, avvioAutomatico: c.avvioAutomatico !== false, tema: c.tema || "allegra", testo: c.testo || "normale", nomeAssistente: c.nomeAssistente || "", voce: c.voce || "auto", nome: c.nome || "", email: c.email || "", emailFiglio: c.emailFiglio || "", haPassword: !!c.password, haChiave: !!c.apiKey, modo: c.modo || "chiave", haToken: !!c.tokenAbbonamento, usiUtente: c.usiUtente || "", haUsi: !!c.usiPassword,
           registroSuRichiesta: c.registroSuRichiesta !== false, avvisaErrori: c.avvisaErrori !== false, registroConConversazioni: !!c.registroConConversazioni, assistenzaRemota: !!c.assistenzaRemota });
       }
       if (req.method === "POST" && url === "/salva") return json({ esiti: await salvaImpostazioni(await corpo(req)) });
@@ -573,12 +593,13 @@ function avviaServer() {
         log("lei:", testo);
         let risposta;
         attivita = null;
+        avviso = null;
         const tDomanda = Date.now();
-        try { risposta = await chiedi(String(testo || "").slice(0, 2000)); } catch (e) { log("chiedi", e); risposta = spiegaErrore(e); }
+        try { risposta = await chiedi(String(testo || "").slice(0, 2000)); } catch (e) { log("chiedi", e); risposta = spiegaErrore(e); avviso = avvisoDa(e) || avviso; }
         log(`tempo: risposta completa ${secondi(tDomanda)}`);
         attivita = null;
         log("claude:", risposta);
-        return json({ risposta });
+        return json({ risposta, avviso });
       }
       json({ errore: "non trovato" }, 404);
     } catch (e) {
@@ -630,4 +651,4 @@ async function main() {
   setTimeout(() => process.exit(0), 500);
 }
 
-module.exports = { main, chiedi, STRUMENTI, avviaServer, eseguiStrumento, nuovaConversazione, SI };
+module.exports = { main, chiedi, STRUMENTI, avviaServer, eseguiStrumento, nuovaConversazione, SI, avvisoDa };

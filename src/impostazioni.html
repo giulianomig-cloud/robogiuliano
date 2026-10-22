@@ -107,7 +107,9 @@
     <label class="pers yay"><input type="radio" name="tema" value="yaymaris"><div class="fig"><img src="/yaymaris-riposo.webp" alt=""></div>RoboYaymaris<small>avatar robot</small></label>
   </div>
   <label>Voce</label>
-  <select name="voce"><option value="auto">Automatica (quella del personaggio)</option><option value="femminile">Femminile</option><option value="maschile">Maschile</option></select></section><section class="sezione" id="s-posta"><h2><span class="em">📧</span>Posta Yahoo<span class="stato" data-stato="posta"></span></h2><p class="intro">La casella che l'assistente legge, stampa e da cui risponde.</p>
+  <select name="voce"><option value="auto">Automatica (quella del personaggio)</option><option value="femminile">Femminile</option><option value="maschile">Maschile</option></select>
+  <label>Grandezza delle scritte <small>Per la risposta e le scritte sotto il personaggio.</small></label>
+  <select name="testo"><option value="normale">Normale</option><option value="grande">Grande</option><option value="moltogrande">Molto grande</option></select></section><section class="sezione" id="s-posta"><h2><span class="em">📧</span>Posta Yahoo<span class="stato" data-stato="posta"></span></h2><p class="intro">La casella che l'assistente legge, stampa e da cui risponde.</p>
   <div class="due"><div><label>Email Yahoo</label><input name="email" type="email" autocomplete="off" placeholder="nome@yahoo.it" required></div>
   <div><label>Password per app <small>Quella da 16 lettere, non la password normale.</small></label><input name="password" type="password" autocomplete="off" placeholder="xxxx xxxx xxxx xxxx"></div></div>
   <small style="margin-top:10px">Yahoo → Sicurezza account → Genera password per app.</small></section><section class="sezione" id="s-claude"><h2><span class="em">🤖</span>Collegamento a Claude<span class="stato" data-stato="claude"></span></h2><p class="intro">Il “cervello” dell'assistente.</p>
@@ -158,7 +160,7 @@
   const f = document.getElementById("modulo");
   fetch("/config").then((r) => r.json()).then((c) => {
     document.getElementById("versione").textContent = "Versione " + c.versione + " · si aggiorna da sola";
-    f.nome.value = c.nome; f.tema.value = c.tema || "allegra"; f.voce.value = c.voce || "auto"; f.nomeAssistente.value = c.nomeAssistente; f.avvioAutomatico.checked = c.avvioAutomatico; f.email.value = c.email; f.emailFiglio.value = c.emailFiglio;
+    f.nome.value = c.nome; f.tema.value = c.tema || "allegra"; f.voce.value = c.voce || "auto"; f.testo.value = c.testo || "normale"; f.nomeAssistente.value = c.nomeAssistente; f.avvioAutomatico.checked = c.avvioAutomatico; f.email.value = c.email; f.emailFiglio.value = c.emailFiglio;
     if (c.haPassword) f.password.placeholder = "già salvata (lascia vuoto per non cambiarla)";
     if (c.haChiave) f.apiKey.placeholder = "già salvata (lascia vuoto per non cambiarla)";
     f.usiUtente.value = c.usiUtente || "";
